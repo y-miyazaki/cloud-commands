@@ -12,7 +12,7 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
 IS_TILLER_INSTALL=$(kubectl get serviceaccount -n kube-system | grep tiller | wc -l | tr -d '\n')
 if [ $IS_TILLER_INSTALL -eq "0" ]; then
-    kubectl apply -f $SCRIPT_DIR/files/helm-rbac.yaml
+    kubectl apply -f $SCRIPT_DIR/../files/kubernetes/helm-rbac.yaml
     helm init --service-account tiller --node-selectors "beta.kubernetes.io/os"="linux"
 else
     echo "Tiller already created."
