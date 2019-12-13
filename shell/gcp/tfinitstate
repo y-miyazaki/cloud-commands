@@ -1,0 +1,47 @@
+#!/bin/bash
+#--------------------------------------------------------------
+# Create GCS bucket for terraform state.
+# You set GCS bucket name to this shell, create GCS bucket and set versioning.
+# GCS bucket name adds suffix of project-id hash for unique name.
+#--------------------------------------------------------------
+set -e
+
+# name
+NAME=`basename $0`
+# script directory
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+
+# usage function
+function usage () {
+  echo "usage: ${NAME} {bucket} {region} {is bucket name auto hash suffix}" 1>&2
+  echo "ex: ${NAME} terraform-state asia-northeast-1 0"
+  exit 1
+}
+
+# arguments
+BUCKET=$1
+if [ -z $BUCKET ]; then
+  usage
+fi
+REGION=$2
+if [ -z $REGION ]; then
+  usage
+fi
+
+# option: add hash suffix to bucket name.
+IS_BUCKET_AUTO_HASH=${3:+0}
+if [ "$IS_BUCKET_AUTO_HASH" -eq "1" ]; then
+  HASH=$(echo -n $PROJECT_ID | sha1sum | sed -e "s/\\s\+\-//")
+  BUCKET="${BUCKET}-${HASH}"
+fi
+
+set +e
+# create bucket to GCS
+gsutil mb -c regional -l $REGION gs://$BUCKET
+set -e
+# versioning on
+gsutil versioning set on gs://$BUCKET
+# set lifecycle
+gsutil lifecycle set $SCRIPT_DIR/files/terraform_init_state_lifecycle.json gs://$BUCKET
+# set lifecycle
+gsutil ls -a
