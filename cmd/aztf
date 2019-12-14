@@ -12,10 +12,6 @@
 # - RESOURCE_GROUP_NAME
 # - CONTAINER_NAME
 # - IS_GENERATE_PROVIDER
-# 
-# usage
-# ex) tf plan
-# ex) tf apply
 #--------------------------------------------------------------
 set -e
 
@@ -24,9 +20,23 @@ NAME=`basename $0`
 
 # usage function
 function usage () {
-  echo "terraform needs $1 environment parameter."
-  echo "USAGE: ${NAME} {command...}" 1>&2
-  exit 1
+  if [ ! -z $1 ]; then
+    echo "error: $(basename ${0}) needs $1 environment parameter."
+  fi
+  cat <<EOF
+
+This script runs terraform command and create main_init.tf file.
+main_init.tf generates terraform backend block and provider(azurerm/azuread).
+
+Usage:
+    $(basename ${0}) {commands} [<options>]
+    $(basename ${0}) plan
+    $(basename ${0}) apply
+    
+Options:
+    same terraform command options
+EOF
+exit 1
 }
 
 # script directory
@@ -35,17 +45,15 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 # arguments
 COMMAND=$@
 
+if [ -z $COMMAND ]; then
+  usage
+fi
 # terraform-state key
 if [ -e "terraform-state.key" ]; then
   KEY=`cat terraform-state.key | sed -e "s/[\r\n]\+//g"`
 else
   KEY=terraform-tfstate
 fi
-
-# if [ $COMMAND = "destroy" ]; then
-#   echo "terraform destroies command can't access now."
-#   exit 1
-# fi
 
 # check environment
 if [ -z $ENV ]; then

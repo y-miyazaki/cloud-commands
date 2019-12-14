@@ -1,7 +1,7 @@
 #!/bin/bash
 #--------------------------------------------------------------
 # This script runs terraform command and create main_init.tf file.
-# main_init.tf generates terraform backend block and provider(azurerm/azuread).
+# main_init.tf generates terraform backend block and provider(google/googlebeta).
 # 
 # if you want to run this script, need to add this following environment.
 # - ENV
@@ -11,38 +11,48 @@
 # - REGION
 # - ZONE
 # - IS_GENERATE_PROVIDER
-# 
-# usage
-# ex) tf plan
-# ex) tf apply
 #--------------------------------------------------------------
 set -e
 
 # name
 NAME=`basename $0`
+
+# usage function
+function usage () {
+  if [ ! -z $1 ]; then
+    echo "error: $(basename ${0}) needs $1 environment parameter."
+  fi
+  cat <<EOF
+
+This script runs terraform command and create main_init.tf file.
+main_init.tf generates terraform backend block and provider(google/googlebeta).
+
+Usage:
+    $(basename ${0}) {commands} [<options>]
+    $(basename ${0}) plan
+    $(basename ${0}) apply
+    
+Options:
+    same terraform command options
+EOF
+exit 1
+}
+
 # script directory
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
+
 # arguments
 COMMAND=$@
 
+if [ -z $COMMAND ]; then
+  usage
+fi
 # terraform-state prefix
 if [ -e "terraform-state.prefix" ]; then
   PREFIX=`cat terraform-state.prefix | sed -e "s/[\r\n]\+//g"`
 else
   PREFIX=terraform.tfstate
 fi
-
-# usage function
-function usage () {
-  echo "terraform needs $1 environment parameter."
-  echo "usage: ${NAME} {command...}" 1>&2
-  exit 1
-}
-
-# if [ $COMMAND = "destroy" ]; then
-#   echo "terraform destroies command can't access now."
-#   exit 1
-# fi
 
 # check environment
 if [ -z $ENV ]; then

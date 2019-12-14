@@ -1,6 +1,7 @@
 #!/bin/bash
 #--------------------------------------------------------------
 # Docker CMD for Azure
+# This script uses this azure environment, please check it.
 # https://github.com/y-miyazaki/vscode-remote-development-terraform-azure
 #--------------------------------------------------------------
 set -e
