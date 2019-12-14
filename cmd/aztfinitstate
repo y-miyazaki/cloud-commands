@@ -1,8 +1,8 @@
 #!/bin/bash
 #--------------------------------------------------------------
 # Create Azure Storage for terraform state.
-# You set Azure Storage Name to this shell, create Azure Storage.
-# Azure Storage Name adds suffix of Container Name hash for unique name.
+# This command creates a Storage Account for Terraform State.
+# You can also add random hash to storage account name suffix.
 #--------------------------------------------------------------
 set -e
 
@@ -12,33 +12,62 @@ DAYS=7
 
 # usage function
 function usage () {
-    echo "USAGE: ${NAME} {service account name} {resource group name} {container name} {location} {is storage account name random suffix}" 1>&2
+    echo $1
+    cat <<EOF
+
+This command creates a Storage Account for Terraform State.
+You can also add random hash to storage account name suffix.
+
+Usage:
+    $(basename ${0}) -g {resource group name} -l {location} -n {storage account name} -c {container name} -r [<options>]
+    $(basename ${0}) -g your-resource-group -l japaneast -n terraform-state -c tfstate -r
+
+Options:
+    -c {container name}       Name of Blob Container
+    -g {resource group name}  Name of Resource Group
+    -l {location}             Storage account location
+    -n {storage account name} Storage account name
+    -r                        If set, a random hash will suffix storage account name.
+    -h                        Usage $(basename ${0})
+EOF
     exit 1
 }
 
-# arguments
-STORAGE_ACCOUNT_NAME=$1
+while getopts c:g:l:n:rh opt
+do
+    case $opt in
+        c ) CONTAINER_NAME=$OPTARG ;;
+        g ) RESOURCE_GROUP_NAME=$OPTARG ;;
+        l ) LOCATION=$OPTARG ;;
+        n ) STORAGE_ACCOUNT_NAME=$OPTARG ;;
+        r ) IS_STORAGE_ACCOUNT_NAME_AUTO_HASH=1 ;;
+        h ) usage ;;
+        \? ) usage ;;
+    esac
+done
+
+# check
 if [ -z $STORAGE_ACCOUNT_NAME ]; then
     usage
 fi
-RESOURCE_GROUP_NAME=$2
 if [ -z $RESOURCE_GROUP_NAME ]; then
     usage
 fi
-CONTAINER_NAME=$3
 if [ -z $CONTAINER_NAME ]; then
     usage
 fi
-LOCATION=$4
 if [ -z $LOCATION ]; then
     usage
 fi
 
 # option: add hash suffix to bucket name.
-IS_STORAGE_ACCOUNT_NAME_AUTO_HASH=$5
-if [ "${IS_STORAGE_ACCOUNT_NAME_AUTO_HASH}" -eq "1" ]; then
+if [ $IS_STORAGE_ACCOUNT_NAME_AUTO_HASH -eq 1 ]; then
     RM=`awk -v min=1000000000 -v max=10000000000 'BEGIN{srand(); print int(min+rand()*(max-min+1))}'`
     STORAGE_ACCOUNT_NAME="${STORAGE_ACCOUNT_NAME}${RM}"
+fi
+# check az command
+if [ -z `which az` ]; then
+    usage "This command need to \"az\"."
 fi
 
 # Create resource group

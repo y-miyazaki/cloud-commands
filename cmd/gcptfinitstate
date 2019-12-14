@@ -1,38 +1,64 @@
 #!/bin/bash
 #--------------------------------------------------------------
 # Create GCS bucket for terraform state.
-# You set GCS bucket name to this shell, create GCS bucket and set versioning.
-# GCS bucket name adds suffix of project-id hash for unique name.
+# This command creates a Cloud Storage for Terraform State.
+# You can also add random hash to bucket name suffix.
 #--------------------------------------------------------------
 set -e
 
-# name
-NAME=`basename $0`
-# script directory
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
-
 # usage function
 function usage () {
-    echo "usage: ${NAME} {bucket} {region} {is bucket name auto hash suffix}" 1>&2
-    echo "ex: ${NAME} terraform-state asia-northeast-1 0"
+    echo $1
+    cat <<EOF
+
+This command creates a Cloud Storage for Terraform State.
+You can also add random hash to bucket name suffix.
+
+Usage:
+    $(basename ${0}) -p {project name} -b {bucket name} -r {region} [<options>]
+    $(basename ${0}) -p yourproject -b terraform-state -r asia-northeast-1 -a
+
+Options:
+    -a                        If set, a random hash will suffix Cloud Storage bucket name.
+    -b {bucket name}          Name of Cloud Storage bucket
+    -p {project name}         GCP Project name
+    -r {region}               Cloud Storage region
+    -h                        Usage $(basename ${0})
+EOF
     exit 1
 }
 
-# arguments
-BUCKET=$1
+while getopts ab:p:r:h opt
+do
+    case $opt in
+        a ) IS_BUCKET_AUTO_HASH=1 ;;
+        b ) BUCKET=$OPTARG ;;
+        p ) PROJECT_ID=$OPTARG ;;
+        r ) REGION=$OPTARG ;;
+        h ) usage ;;
+        \? ) usage ;;
+    esac
+done
+
+# script directory
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+# check
 if [ -z $BUCKET ]; then
     usage
 fi
-REGION=$2
 if [ -z $REGION ]; then
     usage
 fi
 
 # option: add hash suffix to bucket name.
 IS_BUCKET_AUTO_HASH=${3:+0}
-if [ "$IS_BUCKET_AUTO_HASH" -eq "1" ]; then
+if [ $IS_BUCKET_AUTO_HASH -eq 1 ]; then
     HASH=$(echo -n $PROJECT_ID | sha1sum | sed -e "s/\\s\+\-//")
     BUCKET="${BUCKET}-${HASH}"
+fi
+# check gsutil command
+if [ -z `which gsutil` ]; then
+    usage "This command need to \"gsutil\"."
 fi
 
 set +e

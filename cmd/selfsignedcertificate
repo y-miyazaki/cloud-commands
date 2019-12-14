@@ -13,6 +13,7 @@ DIR=certs
 function usage () {
     echo $1
     cat <<EOF
+
 This command creates a self certificate.
 Create client certificate(crt) and server certificate (pfx / csr / pem).
 

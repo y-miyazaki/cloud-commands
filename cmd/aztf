@@ -23,7 +23,7 @@ function usage () {
     if [ ! -z $1 ]; then
         echo "error: $(basename ${0}) needs $1 environment parameter."
     fi
-  cat <<EOF
+    cat <<EOF
 
 This script runs terraform command and create main_init.tf file.
 main_init.tf generates terraform backend block and provider(azurerm/azuread).
