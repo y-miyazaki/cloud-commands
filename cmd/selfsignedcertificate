@@ -1,19 +1,53 @@
 #!/bin/bash
 #--------------------------------------------------------------
 # Create my SSL Certification
+# This command creates a self certificate.
+# Create client certificate(crt) and server certificate (pfx / csr / pem).
 #--------------------------------------------------------------
 set -e
 
-NAME=`basename $0`
+# variables
+DIR=certs
 
-SAN=$1
-DIR=${2:-certs}
+# usage function
+function usage () {
+    echo $1
+    cat <<EOF
+This command creates a self certificate.
+Create client certificate(crt) and server certificate (pfx / csr / pem).
 
-if [ -z $SAN ]; then
-    echo "USAGE: $NAME {SAN file path} {output directory}"
-    echo "ex) $NAME ./san.txt ./certs"
+Usage:
+    $(basename ${0}) -f {san file} [<options>]
+    $(basename ${0}) -f ./san.txt
+    $(basename ${0}) -f ./san.txt -o ./certs
+
+Options:
+    -f {san file}         Subject Alternative Name file path.
+    -o {output directory} output self-signed certificate directory. (default:certs)
+    -h                    Usage $(basename ${0})
+EOF
     exit 1
+}
+
+while getopts f:ho: opt
+do
+    case $opt in
+        f ) SAN=$OPTARG ;;
+        o ) DIR=$OPTARG ;;
+        h ) usage ;;
+        \? ) usage ;;
+    esac
+done
+
+# check
+if [ -z $SAN ]; then
+    usage
 fi
+# check openssl command
+if [ -z `which openssl` ]; then
+    usage "This command need to \"openssl\"."
+fi
+
 # make directory
 mkdir -p $DIR
 

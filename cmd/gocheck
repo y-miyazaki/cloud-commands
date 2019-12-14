@@ -19,29 +19,29 @@ fi
 # output coverage directory
 COVER_DIR=${2:-coverage}
 
-which 
+which
 
 echo "# ------------------------------------------------------------------------"
 echo "# check go static analytics..."
 echo "# ------------------------------------------------------------------------"
-    # --out-format checkstyle \
+# --out-format checkstyle \
 golangci-lint run --tests=false \
-    --issues-exit-code 0 \
-    --disable-all \
-    -c $BASEPATH/config/base.golangci.yml \
-    ./...
+--issues-exit-code 0 \
+--disable-all \
+-c $BASEPATH/config/base.golangci.yml \
+./...
 if [ $? -eq 0 ]; then
     ERR_FLG=1
 fi
 echo "# ------------------------------------------------------------------------"
 echo "# check go duplication/const/cyclomatics..."
 echo "# ------------------------------------------------------------------------"
-    # --out-format checkstyle \
+# --out-format checkstyle \
 golangci-lint run --tests=false \
-    --issues-exit-code 0 \
-    --disable-all \
-    -c $BASEPATH/config/check.golangci.yml \
-    ./...
+--issues-exit-code 0 \
+--disable-all \
+-c $BASEPATH/config/check.golangci.yml \
+./...
 
 echo "# ------------------------------------------------------------------------"
 echo "# go test..."

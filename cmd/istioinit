@@ -1,7 +1,7 @@
 #!/bin/bash
 # ------------------------------------------------------------------------
 # Install istio from helm
-# check global options list 
+# check global options list
 # https://istio.io/docs/reference/config/installation-options/#global-options
 # ------------------------------------------------------------------------
 set -e
@@ -50,35 +50,35 @@ if [ $INSTALL_FLG = "install" ]; then
             # --set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true
             # https://istio.io/docs/ops/configuration/mesh/app-health-check/
             # --set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true \
-
+            
             # Too many log problem
             # --set global.logging.level=warn \
             # --set mixer.adapters.stdio.enabled=false \
             helm install istio.io/istio --name istio --namespace $NAMESPACE --version $ISTIO_VERSION $EXTERNAL_IP \
-                --set global.logging.level=warn \
-                --set mixer.adapters.stdio.enabled=false \
-                --set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true \
-                --set global.controlPlaneSecurityEnabled=true \
-                --set global.mtls.enabled=true \
-                --set grafana.enabled=true --set grafana.security.enabled=false \
-                --set tracing.enabled=$TRACING_ENABLED \
-                --set kiali.enabled=true \
-                --set global.defaultNodeSelector."beta\.kubernetes\.io/os"=linux
-        # MTLS off
+            --set global.logging.level=warn \
+            --set mixer.adapters.stdio.enabled=false \
+            --set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=true \
+            --set global.controlPlaneSecurityEnabled=true \
+            --set global.mtls.enabled=true \
+            --set grafana.enabled=true --set grafana.security.enabled=false \
+            --set tracing.enabled=$TRACING_ENABLED \
+            --set kiali.enabled=true \
+            --set global.defaultNodeSelector."beta\.kubernetes\.io/os"=linux
+            # MTLS off
         else
             # Too many log problem
             # --set global.logging.level=warn \
             # --set mixer.adapters.stdio.enabled=false \
             helm install istio.io/istio --name istio --namespace $NAMESPACE --version $ISTIO_VERSION $EXTERNAL_IP \
-                --set global.logging.level=warn \
-                --set mixer.adapters.stdio.enabled=false \
-                --set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=false \
-                --set global.controlPlaneSecurityEnabled=true \
-                --set global.mtls.enabled=false \
-                --set grafana.enabled=true --set grafana.security.enabled=false \
-                --set tracing.enabled=$TRACING_ENABLED \
-                --set kiali.enabled=true \
-                --set global.defaultNodeSelector."beta\.kubernetes\.io/os"=linux
+            --set global.logging.level=warn \
+            --set mixer.adapters.stdio.enabled=false \
+            --set values.sidecarInjectorWebhook.rewriteAppHTTPProbe=false \
+            --set global.controlPlaneSecurityEnabled=true \
+            --set global.mtls.enabled=false \
+            --set grafana.enabled=true --set grafana.security.enabled=false \
+            --set tracing.enabled=$TRACING_ENABLED \
+            --set kiali.enabled=true \
+            --set global.defaultNodeSelector."beta\.kubernetes\.io/os"=linux
         fi
     fi
     # helm upgrade \
@@ -92,18 +92,18 @@ if [ $INSTALL_FLG = "install" ]; then
     echo "# crds list"
     echo "# ------------------------------------------------------------------------"
     kubectl get crds | grep 'istio.io'
-
+    
     echo "# ------------------------------------------------------------------------"
     echo "# istio pod list"
     echo "# ------------------------------------------------------------------------"
     kubectl get pods --all-namespaces | grep $NAMESPACE
-
+    
     echo "# ------------------------------------------------------------------------"
     echo "# enable istio injection"
     echo "# ------------------------------------------------------------------------"
     kubectl label namespace default istio-injection=enabled --overwrite
     kubectl get namespace -L istio-injection
-elif [ $INSTALL_FLG = "uninstall" ]; then
+    elif [ $INSTALL_FLG = "uninstall" ]; then
     set +e
     helm delete --purge istio
     helm delete --purge istio-init

@@ -2,15 +2,15 @@
 #--------------------------------------------------------------
 # Create client certification for VPN
 # You need to check this following URL.
-# https://docs.microsoft.com/ja-jp/azure/vpn-gateway/vpn-gateway-certificates-point-to-site-linux           
+# https://docs.microsoft.com/ja-jp/azure/vpn-gateway/vpn-gateway-certificates-point-to-site-linux
 #--------------------------------------------------------------
 set -e
 
 NAME=`basename $0`
 
 if [ $# -ne 2 ] ; then
-  echo "USAGE: $NAME {username} {password}"
-  exit 1
+    echo "USAGE: $NAME {username} {password}"
+    exit 1
 fi
 
 export PASSWORD=$2
@@ -22,8 +22,8 @@ CA_CERT=${SERVER_CERT_DIR}/caCert.pem
 CA_KEY=${SERVER_CERT_DIR}/caKey.pem
 
 if [ ! -f ${CA_CERT} -o ! -f ${CA_KEY} ] ; then
-  echo "Server Certification/Key file not found. Try again after creating server cert/key."
-  exit 1
+    echo "Server Certification/Key file not found. Try again after creating server cert/key."
+    exit 1
 fi
 
 USER_KEY="${TARGETDIR}/${USERNAME}Key.pem"
@@ -34,10 +34,10 @@ mkdir -p ${TARGETDIR}
 
 ipsec pki --gen --outform pem > "${USER_KEY}"
 ipsec pki --pub --in "${USER_KEY}" | \
-	ipsec pki --issue --cacert ${CA_CERT} --cakey ${CA_KEY} \
-	--dn "CN=${USERNAME}" --san "${USERNAME}" --flag clientAuth --outform pem \
-	--lifetime 3650 > "${USER_CERT}"
+ipsec pki --issue --cacert ${CA_CERT} --cakey ${CA_KEY} \
+--dn "CN=${USERNAME}" --san "${USERNAME}" --flag clientAuth --outform pem \
+--lifetime 3650 > "${USER_CERT}"
 openssl pkcs12 -in "${USER_CERT}" -inkey "${USER_KEY}" -certfile ${CA_CERT} \
-	-export -out "${USER_P12}" -password "pass:${PASSWORD}"
+-export -out "${USER_P12}" -password "pass:${PASSWORD}"
 
 echo "Created ${USER_P12}"

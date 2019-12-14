@@ -1,12 +1,11 @@
 #!/bin/bash
 # ------------------------------------------------------------------------
 # Create Service Principal
-# 
+#
 # You need to check this following URL.
 # https://docs.microsoft.com/ja-jp/cli/azure/create-an-azure-service-principal-azure-cli?view=azure-cli-latest
 # ------------------------------------------------------------------------
 set -e
-NAME=`basename $0`
 
 # usage function
 function usage () {
@@ -22,18 +21,18 @@ Options:
     -n {value}   Service principal name
     -h           Usage $(basename ${0})
 EOF
-exit 1
+    exit 1
 }
 
 while getopts ghi:n: opt
 do
-  case $opt in
-    g ) AZURE_ACTIVE_DIRECTORY_GRAPH=1 ;;
-    i ) ARM_CLIENT_ID=$OPTARG ;;
-    n ) SERVICE_PRINCIPAL_NAME=$OPTARG ;;
-    h ) usage ;;
-    \? ) usage ;;
-  esac
+    case $opt in
+        g ) AZURE_ACTIVE_DIRECTORY_GRAPH=1 ;;
+        i ) ARM_CLIENT_ID=$OPTARG ;;
+        n ) SERVICE_PRINCIPAL_NAME=$OPTARG ;;
+        h ) usage ;;
+        \? ) usage ;;
+    esac
 done
 
 if [ -z $SERVICE_PRINCIPAL_NAME ]; then
