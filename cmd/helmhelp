@@ -1,4 +1,7 @@
 #!/bin/bash
+#------------------------------------------------------------------------
+# A list of useful helm commands.
+#------------------------------------------------------------------------
 
 echo "------------------------------------------------------------------------"
 echo "helm init"
@@ -55,6 +58,8 @@ echo "helm debug yamls"
 echo "------------------------------------------------------------------------"
 echo "helm get manifest {release name}"
 echo "ex) helm get manifest service"
+echo "# check image and tag."
+echo "ex) helm get manifest service | grep image"
 echo -e "\n"
 
 echo "------------------------------------------------------------------------"

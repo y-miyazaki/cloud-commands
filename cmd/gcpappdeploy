@@ -1,0 +1,28 @@
+#!/bin/bash
+# ------------------------------------------------------------------------
+# Deploy App Engine
+# After logging in with the gcloud command, deploy to App Engine.
+# ------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------
+# variables
+# ------------------------------------------------------------------------
+NAME=`basename $0`
+APP_YAML=$1
+
+if [ -n ${GOOGLE_CLOUD_KEYFILE_JSON} ] && [ -n ${PROJECT_ID} ]; then
+    # gcloud authentication
+    gcloud auth activate-service-account --key-file ${GOOGLE_CLOUD_KEYFILE_JSON}
+    gcloud config set core/project ${PROJECT_ID}
+else
+    echo "you need to add GOOGLE_CLOUD_KEYFILE_JSON and PROJECT_ID environment."
+    exit 1
+fi
+
+# check arguments
+if [ -z $APP_YAML ]; then
+    echo "USAGE: $NAME {path/app.yaml}"
+    exit 1
+fi
+
+gcloud app deploy $APP_YAML --quiet

@@ -78,7 +78,7 @@ fi
 # export TF_LOG_PATH='./terraform.log'
 rm -f terraform.log crash.log main_init.tf
 if [ $IS_GENERATE_PROVIDER -eq "1" ]; then
-  cat $SCRIPT_DIR/../files/gcp/main.template.tf | sed -e "s/##BUCKET##/${BUCKET}/g" > ./main_init.tf
+  cat $SCRIPT_DIR/files/gcp/main.template.tf | sed -e "s/##BUCKET##/${BUCKET}/g" > ./main_init.tf
   cat ./main_init.tf | sed -i -e "s@##PREFIX##@${PREFIX}@g" ./main_init.tf
   cat ./main_init.tf | sed -i -e "s@##GOOGLE_CLOUD_KEYFILE_JSON##@${GOOGLE_CLOUD_KEYFILE_JSON}@g" ./main_init.tf
   cat ./main_init.tf | sed -i -e "s/##PROJECT_ID##/${PROJECT_ID}/g" ./main_init.tf

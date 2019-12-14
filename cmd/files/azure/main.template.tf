@@ -1,6 +1,5 @@
 #--------------------------------------------------------------
 # main_init.tf must be not touch! because main_init.tf is auto generate file.
-# If you want to fix it, you should be fix /shell/files/main.template.tf.
 #--------------------------------------------------------------
 
 #--------------------------------------------------------------
