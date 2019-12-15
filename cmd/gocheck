@@ -1,46 +1,103 @@
 #!/bin/bash
 # ------------------------------------------------------------------------
 # Golang static analysis
+# This command uses go and golangci-lint for unit testing and static analysis.
 # ------------------------------------------------------------------------
 set -e
 
 # ------------------------------------------------------------------------
 # variables
 # ------------------------------------------------------------------------
-# base path
-BASEPATH=`dirname $0`
+# files base path
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
 # error flag
 ERR_FLG=0
 # check go source directory
-DIR=${1:-.}
-if [ -z $DIR ]; then
-    cd $DIR
-fi
+DIR=.
 # output coverage directory
-COVER_DIR=${2:-coverage}
+COVER_DIR=coverage
+# base check config yaml
+BASE_CONFIG=${SCRIPT_DIR}/files/golang/base.golangci.yml
+# base check config yaml(duplication/const/cyclomatics)
+CHECK_CONFIG=${SCRIPT_DIR}/files/golang/check.golangci.yml
 
-which
+# usage function
+function usage () {
+    echo $1
+    cat <<EOF
+
+This command uses go and golangci-lint for unit testing and static analysis.
+
+Usage:
+    $(basename ${0}) [<options>]
+    $(basename ${0})
+    $(basename ${0}) -a ./base.yaml -b ./check.yaml -c
+    $(basename ${0}) -a ./base.yaml -b ./check.yaml -c -d /go/src/github.com/hogehoge/hogehoge -o cover
+
+Options:
+    -a {base check yaml}           static analytics yaml file(for check error) (default:${BASE_CONFIG})
+    -b {check yaml}                static analytics yaml file(for only check) (default:${CHECK_CONFIG})
+    -c                             If set, a covertuna-based coverage file is output.
+    -d {target directory}          Analysis target directory (default:.)
+    -o {output coverage directory} Output coverage directory (default:coverage)
+    -h                             Usage $(basename ${0})
+EOF
+    exit 1
+}
+
+while getopts a:b:cd:o:h opt
+do
+    case $opt in
+        a ) BASE_CONFIG=$OPTARG ;;
+        b ) CHECK_CONFIG=$OPTARG ;;
+        c ) IS_COVERTUNA=1 ;;
+        d ) DIR=$OPTARG ;;
+        o ) COVER_DIR=$OPTARG ;;
+        h ) usage ;;
+        \? ) usage ;;
+    esac
+done
+
+# check
+if [ -z $DIR ]; then
+    usage
+fi
+# check go command
+if [ -z `which go` ]; then
+    usage "This command need to \"go\"."
+fi
+# check golangci-lint command
+if [ -z `which golangci-lint` ]; then
+    usage "This command need to \"golangci-lint\"."
+fi
+# check gocover-cobertura command
+if [ -n $IS_COVERTUNA ]; then
+    if [ -z `which gocover-cobertura` ]; then
+        usage "This command need to \"gocover-cobertura\"."
+    fi
+fi
+cd $DIR
 
 echo "# ------------------------------------------------------------------------"
-echo "# check go static analytics..."
+echo "# check go static analytics...(If there was an error, the check failed.)"
 echo "# ------------------------------------------------------------------------"
 # --out-format checkstyle \
 golangci-lint run --tests=false \
 --issues-exit-code 0 \
 --disable-all \
--c $BASEPATH/config/base.golangci.yml \
+-c $BASE_CONFIG \
 ./...
 if [ $? -eq 0 ]; then
     ERR_FLG=1
 fi
 echo "# ------------------------------------------------------------------------"
-echo "# check go duplication/const/cyclomatics..."
+echo "# check go static analytics...(It will only check and not fail.)"
 echo "# ------------------------------------------------------------------------"
 # --out-format checkstyle \
 golangci-lint run --tests=false \
 --issues-exit-code 0 \
 --disable-all \
--c $BASEPATH/config/check.golangci.yml \
+-c $CHECK_CONFIG \
 ./...
 
 echo "# ------------------------------------------------------------------------"
@@ -49,7 +106,9 @@ echo "# ------------------------------------------------------------------------
 mkdir -p $COVER_DIR
 go test $(go list ./... | grep -v /vendor/) -coverprofile=$COVER_DIR/coverage.out
 go tool cover -html=$COVER_DIR/coverage.out -o $COVER_DIR/coverage.html
-gocover-cobertura < $COVER_DIR/coverage.out > $COVER_DIR/coverage_cobertura.xml
+if [ -n $IS_COVERTUNA ]; then
+    gocover-cobertura < $COVER_DIR/coverage.out > $COVER_DIR/coverage_cobertura.xml
+fi
 
 echo "# ------------------------------------------------------------------------"
 echo "# result"

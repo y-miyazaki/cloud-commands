@@ -1,12 +1,15 @@
 {
-  "editor.fontSize": 16,
-  "editor.tabSize": 4,
-  "editor.insertSpaces": true,
-  "editor.formatOnPaste": false,
-  "editor.formatOnType": false,
+  "editor.fontSize": 16, // font size
+  "editor.suggestFontSize": 24, // サジェストの文字サイズ
+  "editor.tabSize": 4, // tab size
+  "editor.insertSpaces": true, // Tabキーで半角スペースを入力
+  "editor.letterSpacing": -1, // 文字の間隔を詰める
+  "editor.formatOnPaste": false, // コード整形
+  "editor.formatOnType": false, // コード整形
+  "editor.formatOnSave": true, // format on save
   "editor.hover.sticky": false,
-  "editor.formatOnSave": true,
-  "editor.minimap.enabled": false,
+  "editor.renderLineHighlight": "all", // 選択中の行を強調する
+  "editor.minimap.enabled": false, // minimap
   "window.zoomLevel": 1,
   "breadcrumbs.enabled": true,
   "terminal.integrated.shell.linux": "/bin/bash",

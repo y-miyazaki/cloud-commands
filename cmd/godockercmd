@@ -1,6 +1,8 @@
 #!/bin/bash
 # ------------------------------------------------------------------------
 # Docker CMD
+# This shell is a script for CMD called in the following repository.
+# 1. Keep the container.
 # ------------------------------------------------------------------------
 
 # keep container.

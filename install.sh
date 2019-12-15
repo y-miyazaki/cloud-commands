@@ -12,6 +12,7 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 # mkdir -p $INSTALL_DIR
 # chmod commands
 find $SCRIPT_DIR/cmd -maxdepth 1 -type f | xargs chmod 775
+
 # chmod files
 chmod 775 $SCRIPT_DIR/cmd/files
 find $SCRIPT_DIR/cmd/files -type f | xargs chmod 644
