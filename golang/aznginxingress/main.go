@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/urfave/cli"
 )
@@ -81,7 +80,7 @@ func run(args []string) error {
 			if err != nil {
 				return err
 			}
-			if string(out) == "0" {
+			if out == "0" {
 				_, err = execCommand("kubectl", "create", "namespace", nginxNamespace)
 				if err != nil {
 					return err
@@ -96,7 +95,7 @@ func run(args []string) error {
 			if err != nil {
 				return err
 			}
-			if string(out) == "0" {
+			if out == "0" {
 				commandStr = "helm install stable/nginx-ingress"
 				commandStr += " --set controller.replicaCount=" + nginxReplicaCount
 				commandStr += " --set controller.nodeSelector.\"beta\\.kubernetes\\.io/os\"=linux"
@@ -110,7 +109,7 @@ func run(args []string) error {
 				if nginxLoadBalancerIP != "" {
 					commandStr += " --set controller.service.loadBalancerIP=\"" + nginxLoadBalancerIP + "\""
 				}
-				_, err := execCommandStr(commandStr)
+				_, err = execCommandStr(commandStr)
 				if err != nil {
 					return err
 				}
@@ -140,7 +139,7 @@ func run(args []string) error {
 					return err
 				}
 				if out == "0" {
-					_, err := execCommand("kubectl", "create", "namespace", certManagerNamespace)
+					_, err = execCommand("kubectl", "create", "namespace", certManagerNamespace)
 					if err != nil {
 						return err
 					}
@@ -179,34 +178,14 @@ func run(args []string) error {
 			fmt.Println("kubectl describe certificate {your secret name} --namespace " + nginxNamespace)
 		}
 		if uninstall {
-			execCommandStr("helm delete --purge " + nginxReleaseName)
-			execCommandStr("helm delete --purge " + certManagerReleaseName)
+			_, _ = execCommandStr("helm delete --purge " + nginxReleaseName)
+			_, _ = execCommandStr("helm delete --purge " + certManagerReleaseName)
 		}
 		return nil
 	}
 	return app.Run(args)
 }
 
-// execCommand execute exec.Command and output command.
-func execCommand(command string, options ...string) (string, error) {
-	out, err := exec.Command(command, options...).CombinedOutput()
-	outputCommand := command + " "
-	for _, s := range options {
-		outputCommand = s + " "
-	}
-	fmt.Println(outputCommand)
-	fmt.Println(string(out))
-	return string(out), err
-}
-
-// execCommandStr execute exec.Command and output command.
-func execCommandStr(command string) (string, error) {
-	out, err := exec.Command("sh", "-c", command).CombinedOutput()
-	fmt.Println(command)
-	fmt.Println(string(out))
-	return string(out), err
-}
-
 func main() {
-	run(os.Args)
+	_ = run(os.Args)
 }

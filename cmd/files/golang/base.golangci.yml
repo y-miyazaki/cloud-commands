@@ -11,7 +11,7 @@ linters-settings:
       - shadow
     disable-all: false
   golint:
-    min-confidence: 0
+    min-confidence: 0.7
   gocyclo:
     min-complexity: 15
   maligned:
@@ -21,18 +21,18 @@ linters-settings:
   goconst:
     min-len: 2
     min-occurrences: 2
-  depguard:
-    list-type: blacklist
-    packages:
-      # logging is allowed only by logutils.Log, logrus
-      # is allowed to use only in logutils package
-      - github.com/sirupsen/logrus
-    packages-with-error-messages:
-      github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
+  # depguard:
+  #   list-type: blacklist
+  #   packages:
+  #     # logging is allowed only by logutils.Log, logrus
+  #     # is allowed to use only in logutils package
+  #     - github.com/sirupsen/logrus
+  #   packages-with-error-messages:
+  #     github.com/sirupsen/logrus: "logging is allowed only by logutils.Log"
   misspell:
     locale: US
   lll:
-    line-length: 140
+    line-length: 200
   goimports:
     local-prefixes: github.com/golangci/golangci-lint
   gocritic:
@@ -58,14 +58,14 @@ linters:
   enable:
     - bodyclose
     - deadcode
-    - depguard
+    # - depguard
     - dogsled
     # - dupl
     - errcheck
-    - funlen
+    # - funlen
     - gochecknoinits
     # - goconst
-    - gocritic
+    # - gocritic
     # - gocyclo
     - gofmt
     - goimports

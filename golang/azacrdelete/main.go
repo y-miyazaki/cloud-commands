@@ -76,8 +76,7 @@ func run(args []string) error {
 			return err
 		}
 		var showManifests []ShowManifests
-		bytes := []byte(out)
-		if err := json.Unmarshal(bytes, &showManifests); err != nil {
+		if err = json.Unmarshal(out, &showManifests); err != nil {
 			return err
 		}
 
@@ -109,5 +108,5 @@ func run(args []string) error {
 }
 
 func main() {
-	run(os.Args)
+	_ = run(os.Args)
 }
