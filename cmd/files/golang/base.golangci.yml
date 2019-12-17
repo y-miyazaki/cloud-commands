@@ -1,13 +1,15 @@
 linters-settings:
   govet:
+    # report about shadowed variables
     check-shadowing: true
-    settings:
-      printf:
-        funcs:
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
-          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+
+    # enable or disable analyzers by name
+    enable:
+      - atomicalign
+    enable-all: false
+    disable:
+      - shadow
+    disable-all: false
   golint:
     min-confidence: 0
   gocyclo:
@@ -112,6 +114,6 @@ issues:
 # golangci.com configuration
 # https://github.com/golangci/golangci/wiki/Configuration
 service:
-  golangci-lint-version: 1.20.1 # use the fixed version to not introduce new linters unexpectedly
+  golangci-lint-version: 1.21.0 # use the fixed version to not introduce new linters unexpectedly
   prepare:
     - echo "here I can run custom commands, but no preparation needed for this repo"

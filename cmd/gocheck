@@ -83,11 +83,11 @@ echo "# check go static analytics...(If there was an error, the check failed.)"
 echo "# ------------------------------------------------------------------------"
 # --out-format checkstyle \
 golangci-lint run --tests=false \
---issues-exit-code 0 \
+--issues-exit-code 1 \
 --disable-all \
 -c $BASE_CONFIG \
 ./...
-if [ $? -eq 0 ]; then
+if [ $? -eq 1 ]; then
     ERR_FLG=1
 fi
 echo "# ------------------------------------------------------------------------"
