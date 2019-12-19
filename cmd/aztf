@@ -54,6 +54,18 @@ if [ -e "terraform-state.key" ]; then
 else
     KEY=terraform-tfstate
 fi
+# terraform-state azurerm version
+if [ -e "terraform-state.azurermversion" ]; then
+    AZURERM_VERSION=`cat terraform-state.azurermversion | sed -e "s/[\r\n]\+//g"`
+else
+    AZURERM_VERSION="=1.39.0"
+fi
+# terraform-state azurerm version
+if [ -e "terraform-state.azureadversion" ]; then
+    AZURERD_VERSION=`cat terraform-state.azureadversion | sed -e "s/[\r\n]\+//g"`
+else
+    AZURERD_VERSION="=0.7.0"
+fi
 
 # check environment
 if [ -z $ENV ]; then
@@ -100,6 +112,8 @@ if [ $IS_GENERATE_PROVIDER -eq "1" ]; then
     cat $SCRIPT_DIR/files/azure/main.template.tf | sed -e "s/##STORAGE_ACCOUNT_NAME##/${STORAGE_ACCOUNT_NAME}/g" > ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##CONTAINER_NAME##@${CONTAINER_NAME}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##KEY##@${KEY}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##AZURERM_VERSION##@${AZURERM_VERSION}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##AZURERD_VERSION##@${AZURERD_VERSION}@g" ./main_init.tf
 fi
 terraform init
 terraform $COMMAND -var-file=terraform.$ENV.tfvars

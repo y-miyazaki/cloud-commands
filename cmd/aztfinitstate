@@ -20,7 +20,7 @@ You can also add random hash to storage account name suffix.
 
 Usage:
     $(basename ${0}) -g {resource group name} -l {location} -n {storage account name} -c {container name} -r [<options>]
-    $(basename ${0}) -g your-resource-group -l japaneast -n terraform-state -c tfstate -r
+    $(basename ${0}) -g your-resource-group -l japaneast -n ts -c tfstate -r
 
 Options:
     -c {container name}       Name of Blob Container
@@ -62,7 +62,7 @@ fi
 
 # option: add hash suffix to bucket name.
 if [ $IS_STORAGE_ACCOUNT_NAME_AUTO_HASH -eq 1 ]; then
-    RM=`awk -v min=1000000000 -v max=10000000000 'BEGIN{srand(); print int(min+rand()*(max-min+1))}'`
+    RM=`awk -v min=10000000 -v max=100000000 'BEGIN{srand(); print int(min+rand()*(max-min+1))}'`
     STORAGE_ACCOUNT_NAME="${STORAGE_ACCOUNT_NAME}${RM}"
 fi
 # check az command
@@ -74,7 +74,7 @@ fi
 az group create --name $RESOURCE_GROUP_NAME --location $LOCATION
 
 # Create storage account
-az storage account create --resource-group $RESOURCE_GROUP_NAME --name $STORAGE_ACCOUNT_NAME --sku Standard_LRS --encryption-services blob
+az storage account create --resource-group $RESOURCE_GROUP_NAME --name $STORAGE_ACCOUNT_NAME --sku Standard_LRS --encryption-services blob --kind Storage
 
 # create delete policy
 az storage blob service-properties delete-policy update --days-retained $DAYS --account-name $STORAGE_ACCOUNT_NAME --enable true

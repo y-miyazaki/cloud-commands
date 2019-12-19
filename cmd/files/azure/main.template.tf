@@ -18,7 +18,8 @@ terraform {
 # Provider Setting
 #--------------------------------------------------------------
 provider "azurerm" {
+  version = "##AZURERM_VERSION##"
 }
 provider "azuread" {
- version = ">=0.3.0"
+  version = "##AZURERD_VERSION##"
 }

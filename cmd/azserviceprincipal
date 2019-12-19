@@ -13,23 +13,25 @@ function usage () {
 $(basename ${0}) is a tool for create azure service principal
 
 Usage:
-    $(basename ${0}) -n {service principal name} [<options>]
+    $(basename ${0}) -n {service principal name} -s {subscription id} [<options>]
 
 Options:
     -g           Authrize Azure Active Directory Graph
     -i           The Client ID
     -n {value}   Service principal name
+    -s           Subscription ID
     -h           Usage $(basename ${0})
 EOF
     exit 1
 }
 
-while getopts ghi:n: opt
+while getopts g:hi:n:s: opt
 do
     case $opt in
         g ) AZURE_ACTIVE_DIRECTORY_GRAPH=1 ;;
         i ) ARM_CLIENT_ID=$OPTARG ;;
         n ) SERVICE_PRINCIPAL_NAME=$OPTARG ;;
+        s ) SUBSCRIPTION_ID=$OPTARG ;;
         h ) usage ;;
         \? ) usage ;;
     esac
@@ -38,13 +40,16 @@ done
 if [ -z $SERVICE_PRINCIPAL_NAME ]; then
     usage
 fi
+if [ -z $SUBSCRIPTION_ID ]; then
+    usage
+fi
 
 az login
-az ad sp create-for-rbac -n "${SERVICE_PRINCIPAL_NAME}" --role contributor
+az ad sp create-for-rbac -n "${SERVICE_PRINCIPAL_NAME}" --role contributor --scope="/subscriptions/${SUBSCRIPTION_ID}"
 az account show --query "{subscriptionId:id, tenantId:tenantId}"
 
-if [ $AZURE_ACTIVE_DIRECTORY_GRAPH -eq 1 ]; then
-    if [ -z $ARM_CLIENT_ID ]; then
+if [ -n $AZURE_ACTIVE_DIRECTORY_GRAPH ]; then
+    if [ -n $ARM_CLIENT_ID ]; then
         # Azure Active Directory Graph->Application.ReadWrite.All
         az ad app permission add --id $ARM_CLIENT_ID --api 00000002-0000-0000-c000-000000000000 --api-permissions 311a71cc-e848-46a1-bdf8-97ff7156d8e6=Role
         # Azure Active Directory Graph->Directroy.Read.All
