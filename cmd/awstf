@@ -49,9 +49,9 @@ else
 fi
 # provider aws version
 if [ -e "provider-aws.version" ]; then
-    AZURERM_VERSION=`cat provider-aws.version | sed -e "s/[\r\n]\+//g"`
+    AWS_VERSION=`cat provider-aws.version | sed -e "s/[\r\n]\+//g"`
 else
-    AZURERM_VERSION="~>2.43.0"
+    AWS_VERSION="~>2.43.0"
 fi
 
 # get AWS Account ID
@@ -86,7 +86,7 @@ if [ "$IS_GENERATE_PROVIDER" -eq "1" ]; then
     cat ./main_init.tf | sed -i -e "s/##BUCKET##/${BUCKET}/g"  ./main_init.tf
     cat ./main_init.tf | sed -i -e "s/##REGION##/${AWS_DEFAULT_REGION}/g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##KEY##@${KEY}@g" ./main_init.tf
-    cat ./main_init.tf | sed -i -e "s@##GOOGLE_VERSION##@${GOOGLE_VERSION}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##AWS_VERSION##@${AWS_VERSION}@g" ./main_init.tf
 fi
 
 terraform init
