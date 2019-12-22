@@ -22,12 +22,14 @@ provider "google" {
   project     = "##PROJECT_ID##"
   region      = "##REGION##"
   zone        = "##ZONE##"
+  version = "##GOOGLE_VERSION##"
 }
 provider "google-beta" {
   credentials = "${file("##GOOGLE_CLOUD_KEYFILE_JSON##")}"
   project     = "##PROJECT_ID##"
   region      = "##REGION##"
   zone        = "##ZONE##"
+  version = "##GOOGLE_BETA_VERSION##"
 }
 #--------------------------------------------------------------
 # Information

@@ -1,0 +1,97 @@
+#!/bin/bash
+#--------------------------------------------------------------
+# Create S3 bucket for terraform state.
+# You set S3 bucket name to this shell, create S3 bucket and set versioning.
+# S3 bucket name adds suffix of aws-id hash for unique name.
+#--------------------------------------------------------------
+set -e
+
+# name
+NAME=`basename $0`
+
+# usage function
+function usage () {
+    echo $1
+    cat <<EOF
+
+This command creates a S3 Bucket for Terraform State.
+You can also add random hash to bucket name suffix.
+
+Usage:
+    $(basename ${0}) {region} -b {bucket name} [<options>]
+    $(basename ${0}) ap-northeast-1 -b terraform-state
+    $(basename ${0}) ap-northeast-1 -b terraform-state -s
+
+Options:
+    -b {bucket name}          S3 bucket name
+    -p {aws profile name}     Name of AWS profile
+    -r {region}               S3 region
+    -s                        If set, a random hash will suffix bucket name.
+    -h                        Usage $(basename ${0})
+EOF
+    exit 1
+}
+
+while getopts b:p:r:sh opt
+do
+    case $opt in
+        b ) BUCKET=$OPTARG ;;
+        p ) PROFILE="--profile $OPTARG" ;;
+        r ) REGION=$OPTARG ;;
+        s ) IS_BUCKET_AUTO_HASH=1 ;;
+        h ) usage ;;
+        \? ) usage ;;
+    esac
+done
+
+# script directory
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+
+# AWS ID取得
+AWS_ID=$( \
+    aws sts get-caller-identity \
+    --query 'Account' \
+    --output text \
+    $PROFILE \
+) && echo ${AWS_ID}
+
+# option: add hash suffix to bucket name.
+if [ $IS_BUCKET_AUTO_HASH -eq 1 ]; then
+    HASH=$(echo -n $AWS_ID | sha1sum | sed -e "s/\\s\+\-//")
+    BUCKET="${1}-${HASH}"
+fi
+# check aws command
+if [ -z `which aws` ]; then
+    usage "This command need to \"aws\"."
+fi
+
+# # バケットの作成
+# # リージョンを指定しないとエラーになるので明示的に指定している
+# # https://dev.classmethod.jp/cloud/aws/jaws-ug-cli-1/
+aws s3api create-bucket $PROFILE --bucket $BUCKET --create-bucket-configuration LocationConstraint=$REGION && :
+
+# # バケットのバージョニング設定
+# # 何かやらかしたときに、復元できるようにしておく
+aws s3api put-bucket-versioning $PROFILE --bucket $BUCKET --versioning-configuration Status=Enabled
+
+# # バケットのデフォルト暗号化設定
+# # http://tech.withsin.net/2017/12/05/s3-bucket-encryption/
+aws s3api put-bucket-encryption $PROFILE --bucket $BUCKET --server-side-encryption-configuration '{
+  "Rules": [
+    {
+      "ApplyServerSideEncryptionByDefault": {
+        "SSEAlgorithm": "AES256"
+      }
+    }
+  ]
+}'
+
+aws s3api get-bucket-location $PROFILE --bucket $BUCKET
+aws s3api get-bucket-versioning $PROFILE --bucket $BUCKET
+aws s3api get-bucket-encryption $PROFILE --bucket $BUCKET
+
+# sed for account id and bucket.
+cat $SCRIPT_DIR/files/terraform_state_policy.template.json | sed -e "s/##AWS_ID##/${AWS_ID}/g" > $SCRIPT_DIR/files/terraform_state_policy.json
+cat $SCRIPT_DIR/files/terraform_state_policy.json | sed -i '' -e "s/##BUCKET##/${BUCKET}/g" $SCRIPT_DIR/files/terraform_state_policy.json
+aws s3api put-bucket-policy $PROFILE --bucket $BUCKET --policy file://$SCRIPT_DIR/files/terraform_state_policy.json
+rm -f $SCRIPT_DIR/files/terraform_state_policy.json

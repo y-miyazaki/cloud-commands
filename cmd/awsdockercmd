@@ -1,0 +1,10 @@
+#!/bin/bash
+#--------------------------------------------------------------
+# Docker CMD for AWS
+# This script uses this gcp environment, please check it.
+# https://github.com/y-miyazaki/vscode-remote-development-terraform-aws
+#--------------------------------------------------------------
+set -e
+
+# keep container.
+tail -f /dev/null

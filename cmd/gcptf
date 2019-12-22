@@ -25,7 +25,7 @@ function usage () {
   cat <<EOF
 
 This script runs terraform command and create main_init.tf file.
-main_init.tf generates terraform backend block and provider(google/googlebeta).
+main_init.tf generates terraform backend block and provider(google/google-beta).
 
 Usage:
     $(basename ${0}) {commands} [<options>]
@@ -53,35 +53,40 @@ if [ -e "terraform-state.prefix" ]; then
 else
     PREFIX=terraform.tfstate
 fi
+# provider google version
+if [ -e "provider-google.version" ]; then
+    GOOGLE_VERSION=`cat provider-google.version | sed -e "s/[\r\n]\+//g"`
+else
+    GOOGLE_VERSION="~>3.3.0"
+fi
+# provider google-beta version
+if [ -e "provider-google-beta.version" ]; then
+    GOOGLE_BETA_VERSION=`cat provider-google-beta.version | sed -e "s/[\r\n]\+//g"`
+else
+    GOOGLE_BETA_VERSION="~>3.3.0"
+fi
 
 # check environment
 if [ -z $ENV ]; then
     usage ENV
-    exit 1
 fi
 if [ -z $BUCKET ]; then
     usage BUCKET
-    exit 1
 fi
 if [ -z $GOOGLE_CLOUD_KEYFILE_JSON ]; then
     usage GOOGLE_CLOUD_KEYFILE_JSON
-    exit 1
 fi
 if [ -z $PROJECT_ID ]; then
     usage PROJECT_ID
-    exit 1
 fi
 if [ -z $REGION ]; then
     usage ZONE
-    exit 1
 fi
 if [ -z $ZONE ]; then
     usage ZONE
-    exit 1
 fi
 if [ -z $IS_GENERATE_PROVIDER ]; then
     usage IS_GENERATE_PROVIDER
-    exit 1
 fi
 
 # export TF_LOG=1
@@ -94,6 +99,8 @@ if [ $IS_GENERATE_PROVIDER -eq "1" ]; then
     cat ./main_init.tf | sed -i -e "s/##PROJECT_ID##/${PROJECT_ID}/g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s/##REGION##/${REGION}/g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s/##ZONE##/${ZONE}/g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##GOOGLE_VERSION##@${GOOGLE_VERSION}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##GOOGLE_BETA_VERSION##@${GOOGLE_BETA_VERSION}@g" ./main_init.tf
 fi
 terraform init
 terraform $COMMAND -var-file=terraform.$ENV.tfvars

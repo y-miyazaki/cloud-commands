@@ -1,0 +1,93 @@
+#!/bin/bash
+#--------------------------------------------------------------
+# This script runs terraform command and create main_init.tf file.
+# main_init.tf generates terraform backend block and provider(aws).
+#
+# if you want to run this script, need to add this following environment.
+# - ENV
+# - BUCKET
+# - AWS_DEFAULT_REGION
+# - IS_GENERATE_PROVIDER
+#--------------------------------------------------------------
+set -e
+
+# name
+NAME=`basename $0`
+
+# usage function
+function usage () {
+    if [ ! -z $1 ]; then
+        echo "error: $(basename ${0}) needs $1 environment parameter."
+    fi
+    cat <<EOF
+
+This script runs terraform command and create main_init.tf file.
+main_init.tf generates terraform backend block and provider(aws).
+
+Usage:
+    $(basename ${0}) {commands} [<options>]
+    $(basename ${0}) plan
+    $(basename ${0}) apply
+
+Options:
+    same terraform command options
+EOF
+    exit 1
+}
+
+# script directory
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+
+# terraform command
+COMMAND=$@
+
+# terraform-state key
+if [ -e "terraform-state.key" ]; then
+    KEY=`cat terraform-state.key | sed -e "s/[\r\n]\+//g"`
+else
+    KEY=terraform.tfstate
+fi
+# provider aws version
+if [ -e "provider-aws.version" ]; then
+    AZURERM_VERSION=`cat provider-aws.version | sed -e "s/[\r\n]\+//g"`
+else
+    AZURERM_VERSION="~>2.43.0"
+fi
+
+# get AWS Account ID
+AWS_ID=$( \
+    aws sts get-caller-identity \
+    --query 'Account' \
+    --output text
+)
+if [ -z $AWS_ID ]; then
+    usage "aws account id"
+fi
+
+# check environment
+if [ -z $ENV ]; then
+    usage ENV
+fi
+if [ -z $BUCKET ]; then
+    usage BUCKET
+fi
+if [ -z $AWS_DEFAULT_REGION ]; then
+    usage AWS_DEFAULT_REGION
+fi
+if [ -z $IS_GENERATE_PROVIDER ]; then
+    usage IS_GENERATE_PROVIDER
+fi
+
+# export TF_LOG=1
+# export TF_LOG_PATH='./terraform.log'
+rm -f terraform.log crash.log main_init.tf
+if [ "$IS_GENERATE_PROVIDER" -eq "1" ]; then
+    cat $SCRIPT_DIR/files/aws/main.template.tf | sed -e "s/##AWS_ID##/${AWS_ID}/g" > ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s/##BUCKET##/${BUCKET}/g"  ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s/##REGION##/${AWS_DEFAULT_REGION}/g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##KEY##@${KEY}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##GOOGLE_VERSION##@${GOOGLE_VERSION}@g" ./main_init.tf
+fi
+
+terraform init
+terraform $COMMAND -var-file=terraform.$ENV.tfvars
