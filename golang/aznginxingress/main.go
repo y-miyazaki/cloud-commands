@@ -10,8 +10,37 @@ import (
 func run(args []string) error {
 	app := cli.NewApp()
 	app.Name = "aznginxingress"
-	app.Usage = "This command installs nginx ingress and cert-manager."
-	app.Version = "v1.0.0"
+	app.Usage = `This command installs nginx ingress and cert-manager.
+   This command requires "kubectl" and "helm" commands.
+   Also, since you actually install to the Cluster, you need to have permission to deploy to the Cluster.
+
+   1. This is the base installation of nginx-ingress executed by this command.
+	  If you want to specify additional options, use the load-balancer-ip / internal / nginx-ingress-install-other-options option.
+
+      helm install stable/nginx-ingress
+         --set controller.replicaCount=2 \
+         --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
+         --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux \
+         --namespace {nginxNamespace} \
+         --name {nginxReleaseName}
+      
+      Reference document
+         https://docs.microsoft.com/ja-jp/azure/aks/ingress-static-ip#create-an-ingress-controller
+         https://github.com/helm/charts/tree/master/stable/nginx-ingress
+
+   2. This is the base installation of cert-manager executed by this command.
+      If you want to specify additional options, use the cert-manager-install-other-options option.
+
+      helm install --name {certManagerReleaseName} \
+         --namespace {certManagerNamespace} \
+         --version v{certManagerVersion}.0 \
+         jetstack/cert-manager
+
+      Reference document
+         https://docs.microsoft.com/ja-jp/azure/aks/ingress-static-ip#install-cert-manager
+         https://github.com/jetstack/cert-manager
+`
+	app.Version = "v1.0.1"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "nginx-release-name, n-rn",
@@ -30,11 +59,15 @@ func run(args []string) error {
 		},
 		cli.StringFlag{
 			Name:  "load-balancer-ip, lbip",
-			Usage: "The load balancer ip address",
+			Usage: "If set, add the option when installing nginx ingress and allocate only fixed IP.",
 		},
 		cli.BoolFlag{
 			Name:  "internal",
-			Usage: "If set, The load balancer ip is internal",
+			Usage: "If set, add the option when installing nginx ingress and allocate only the internal IP.",
+		},
+		cli.StringFlag{
+			Name:  "nginx-ingress-install-other-options",
+			Usage: "Specify the helm install option to set Nginx Ingress at the time of installation.",
 		},
 		cli.StringFlag{
 			Name:  "cert-manager-version, cm-v",
@@ -51,6 +84,10 @@ func run(args []string) error {
 			Usage: "The release name of cert-manager",
 			Value: "cert-manager",
 		},
+		cli.StringFlag{
+			Name:  "cert-manager-install-other-options",
+			Usage: "Specify the helm install option to set cert manager at the time of installation.",
+		},
 		cli.BoolFlag{
 			Name:  "install, i",
 			Usage: "install nginx ingress and cert-manager.",
@@ -66,9 +103,11 @@ func run(args []string) error {
 		nginxReplicaCount := c.String("replicacount")
 		nginxLoadBalancerIP := c.String("load-balancer-ip")
 		internal := c.Bool("internal")
+		nginxIngressInstallOtherOptions := c.String("nginx-ingress-install-other-options")
 		certManagerVersion := c.String("cert-manager-version")
 		certManagerNamespace := c.String("cert-manager-namespace")
 		certManagerReleaseName := c.String("cert-manager-release-name")
+		certManagerInstallOtherOptions := c.String("cert-manager-install-other-options")
 		install := c.Bool("install")
 		uninstall := c.Bool("uninstall")
 		if install {
@@ -109,6 +148,9 @@ func run(args []string) error {
 				if nginxLoadBalancerIP != "" {
 					commandStr += " --set controller.service.loadBalancerIP=\"" + nginxLoadBalancerIP + "\""
 				}
+				// other options
+				commandStr = commandStr + " " + nginxIngressInstallOtherOptions
+
 				_, err = execCommandStr(commandStr)
 				if err != nil {
 					return err
@@ -133,7 +175,7 @@ func run(args []string) error {
 				}
 
 				// cert manager check namespace & create namespace
-				commandStr := "kubectl get ns | grep " + certManagerNamespace + " | wc -l | tr -d \"\\n\""
+				commandStr = "kubectl get ns | grep " + certManagerNamespace + " | wc -l | tr -d \"\\n\""
 				out, err = execCommandStr(commandStr)
 				if err != nil {
 					return err
@@ -160,7 +202,7 @@ func run(args []string) error {
 					return err
 				}
 				// Update your local Helm chart repository cache
-				_, err = execCommandStr("helm install --name " + certManagerReleaseName + " --namespace " + certManagerNamespace + " --version v" + certManagerVersion + ".0 jetstack/cert-manager")
+				_, err = execCommandStr("helm install --name " + certManagerReleaseName + " --namespace " + certManagerNamespace + " --version v" + certManagerVersion +".0 " + certManagerInstallOtherOptions + " jetstack/cert-manager")
 				if err != nil {
 					return err
 				}
