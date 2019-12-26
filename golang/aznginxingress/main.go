@@ -15,12 +15,13 @@ func run(args []string) error {
    Also, since you actually install to the Cluster, you need to have permission to deploy to the Cluster.
 
    1. This is the base installation of nginx-ingress executed by this command.
-	  If you want to specify additional options, use the load-balancer-ip / internal / nginx-ingress-install-other-options option.
+	  If you want to specify additional options, use the load-balancer-ip / internal / nginx-other-options option.
 
-      helm install stable/nginx-ingress
+      helm install stable/nginx-ingress \
          --set controller.replicaCount=2 \
          --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
          --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux \
+         --set controller.service.externalTrafficPolicy=Local \
          --namespace {nginxNamespace} \
          --name {nginxReleaseName}
       
@@ -29,7 +30,7 @@ func run(args []string) error {
          https://github.com/helm/charts/tree/master/stable/nginx-ingress
 
    2. This is the base installation of cert-manager executed by this command.
-      If you want to specify additional options, use the cert-manager-install-other-options option.
+      If you want to specify additional options, use the cert-manager-other-options option.
 
       helm install --name {certManagerReleaseName} \
          --namespace {certManagerNamespace} \
@@ -66,7 +67,7 @@ func run(args []string) error {
 			Usage: "If set, add the option when installing nginx ingress and allocate only the internal IP.",
 		},
 		cli.StringFlag{
-			Name:  "nginx-ingress-install-other-options",
+			Name:  "nginx-other-options",
 			Usage: "Specify the helm install option to set Nginx Ingress at the time of installation.",
 		},
 		cli.StringFlag{
@@ -85,7 +86,7 @@ func run(args []string) error {
 			Value: "cert-manager",
 		},
 		cli.StringFlag{
-			Name:  "cert-manager-install-other-options",
+			Name:  "cert-manager-other-options",
 			Usage: "Specify the helm install option to set cert manager at the time of installation.",
 		},
 		cli.BoolFlag{
@@ -103,11 +104,11 @@ func run(args []string) error {
 		nginxReplicaCount := c.String("replicacount")
 		nginxLoadBalancerIP := c.String("load-balancer-ip")
 		internal := c.Bool("internal")
-		nginxIngressInstallOtherOptions := c.String("nginx-ingress-install-other-options")
+		nginxOtherOptions := c.String("nginx-other-options")
 		certManagerVersion := c.String("cert-manager-version")
 		certManagerNamespace := c.String("cert-manager-namespace")
 		certManagerReleaseName := c.String("cert-manager-release-name")
-		certManagerInstallOtherOptions := c.String("cert-manager-install-other-options")
+		certManagerOtherOptions := c.String("cert-manager-other-options")
 		install := c.Bool("install")
 		uninstall := c.Bool("uninstall")
 		if install {
@@ -139,6 +140,7 @@ func run(args []string) error {
 				commandStr += " --set controller.replicaCount=" + nginxReplicaCount
 				commandStr += " --set controller.nodeSelector.\"beta\\.kubernetes\\.io/os\"=linux"
 				commandStr += " --set defaultBackend.nodeSelector.\"beta\\.kubernetes\\.io/os\"=linux"
+				commandStr += " --set controller.service.externalTrafficPolicy=Local"
 				commandStr = commandStr + " --namespace " + nginxNamespace
 				commandStr = commandStr + " --name " + nginxReleaseName
 				if internal {
@@ -149,7 +151,7 @@ func run(args []string) error {
 					commandStr += " --set controller.service.loadBalancerIP=\"" + nginxLoadBalancerIP + "\""
 				}
 				// other options
-				commandStr = commandStr + " " + nginxIngressInstallOtherOptions
+				commandStr = commandStr + " " + nginxOtherOptions
 
 				_, err = execCommandStr(commandStr)
 				if err != nil {
@@ -202,7 +204,7 @@ func run(args []string) error {
 					return err
 				}
 				// Update your local Helm chart repository cache
-				_, err = execCommandStr("helm install --name " + certManagerReleaseName + " --namespace " + certManagerNamespace + " --version v" + certManagerVersion +".0 " + certManagerInstallOtherOptions + " jetstack/cert-manager")
+				_, err = execCommandStr("helm install --name " + certManagerReleaseName + " --namespace " + certManagerNamespace + " --version v" + certManagerVersion + ".0 " + certManagerOtherOptions + " jetstack/cert-manager")
 				if err != nil {
 					return err
 				}
