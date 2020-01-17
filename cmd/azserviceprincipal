@@ -44,8 +44,10 @@ if [ -z $SUBSCRIPTION_ID ]; then
     usage
 fi
 
+# need to check document.
+# https://docs.microsoft.com/ja-jp/azure/role-based-access-control/role-assignments-rest
 az login
-az ad sp create-for-rbac -n "${SERVICE_PRINCIPAL_NAME}" --role contributor --scope="/subscriptions/${SUBSCRIPTION_ID}"
+az ad sp create-for-rbac -n "${SERVICE_PRINCIPAL_NAME}" --role owner --scope="/subscriptions/${SUBSCRIPTION_ID}"
 az account show --query "{subscriptionId:id, tenantId:tenantId}"
 
 if [ -n $AZURE_ACTIVE_DIRECTORY_GRAPH ]; then
