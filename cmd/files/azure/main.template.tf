@@ -25,6 +25,7 @@ provider "azuread" {
 }
 
 #--------------------------------------------------------------
-# Get Client Config
+# Get Data
 #--------------------------------------------------------------
-data "azurerm_client_config" "current" {}
+data "azurerm_subscription" "this" {}
+data "azurerm_client_config" "this" {}
