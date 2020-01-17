@@ -23,3 +23,8 @@ provider "azurerm" {
 provider "azuread" {
   version = "##AZURERD_VERSION##"
 }
+
+#--------------------------------------------------------------
+# Get Client Config
+#--------------------------------------------------------------
+data "azurerm_client_config" "current" {}
