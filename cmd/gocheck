@@ -87,7 +87,7 @@ golangci-lint run --tests=false \
 --issues-exit-code 1 \
 --disable-all \
 -c $BASE_CONFIG \
-./... || result=$?
+./... ; result=$?
 set -e
 if [ $result -eq 1 ]; then
     ERR_FLG=1
@@ -100,7 +100,7 @@ golangci-lint run --tests=false \
 --issues-exit-code 0 \
 --disable-all \
 -c $CHECK_CONFIG \
-./... || result=$?
+./... ; result=$?
 
 echo "# ------------------------------------------------------------------------"
 echo "# go test..."
