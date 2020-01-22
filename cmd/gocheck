@@ -75,7 +75,7 @@ if [ -z `which go` ]; then
     usage "This command need to \"go\"."
 fi
 cd $DIR
-if [ IS_STATIC_ANALYSIS -eq 1 ]; then
+if [ $IS_STATIC_ANALYSIS -eq 1 ]; then
     # check golangci-lint command
     if [ -z `which golangci-lint` ]; then
         usage "This command need to \"golangci-lint\"."
@@ -105,7 +105,7 @@ if [ IS_STATIC_ANALYSIS -eq 1 ]; then
     ./... ; result=$?
 fi
 
-if [ IS_TEST -eq 1 ]; then
+if [ $IS_TEST -eq 1 ]; then
     # check gocover-cobertura command
     if [ -n $IS_COVERTUNA ]; then
         if [ -z `which gocover-cobertura` ]; then
