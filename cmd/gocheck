@@ -20,6 +20,10 @@ COVER_DIR=coverage
 BASE_CONFIG=${SCRIPT_DIR}/files/golang/base.golangci.yml
 # base check config yaml(duplication/const/cyclomatics)
 CHECK_CONFIG=${SCRIPT_DIR}/files/golang/check.golangci.yml
+# check static analysis
+IS_STATIC_ANALYSIS=1
+# check static analysis
+IS_STATIC_ANALYSIS=1
 
 # usage function
 function usage () {
@@ -41,11 +45,13 @@ Options:
     -d {target directory}          Analysis target directory (default:.)
     -o {output coverage directory} Output coverage directory (default:coverage)
     -h                             Usage $(basename ${0})
+    -s                             If set, check static analysis
+    -t                             If set, execute go test
 EOF
     exit 1
 }
 
-while getopts a:b:cd:o:h opt
+while getopts a:b:cd:ho:st opt
 do
     case $opt in
         a ) BASE_CONFIG=$OPTARG ;;
@@ -53,6 +59,8 @@ do
         c ) IS_COVERTUNA=1 ;;
         d ) DIR=$OPTARG ;;
         o ) COVER_DIR=$OPTARG ;;
+        s ) IS_STATIC_ANALYSIS=1 ;;
+        t ) IS_TEST=1 ;;
         h ) usage ;;
         \? ) usage ;;
     esac
@@ -66,50 +74,53 @@ fi
 if [ -z `which go` ]; then
     usage "This command need to \"go\"."
 fi
-# check golangci-lint command
-if [ -z `which golangci-lint` ]; then
-    usage "This command need to \"golangci-lint\"."
-fi
-# check gocover-cobertura command
-if [ -n $IS_COVERTUNA ]; then
-    if [ -z `which gocover-cobertura` ]; then
-        usage "This command need to \"gocover-cobertura\"."
-    fi
-fi
 cd $DIR
-
-echo "# ------------------------------------------------------------------------"
-echo "# check go static analytics...(If there was an error, the check failed.)"
-echo "# ------------------------------------------------------------------------"
-set +e
-# --out-format checkstyle \
-golangci-lint run --tests=false \
---issues-exit-code 1 \
---disable-all \
--c $BASE_CONFIG \
-./... ; result=$?
-set -e
-if [ $result -eq 1 ]; then
-    ERR_FLG=1
+if [ IS_STATIC_ANALYSIS -eq 1 ]; then
+    # check golangci-lint command
+    if [ -z `which golangci-lint` ]; then
+        usage "This command need to \"golangci-lint\"."
+    fi
+    echo "# ------------------------------------------------------------------------"
+    echo "# check go static analytics...(If there was an error, the check failed.)"
+    echo "# ------------------------------------------------------------------------"
+    set +e
+    # --out-format checkstyle \
+    golangci-lint run --tests=false \
+    --issues-exit-code 1 \
+    --disable-all \
+    -c $BASE_CONFIG \
+    ./... ; result=$?
+    set -e
+    if [ $result -eq 1 ]; then
+        ERR_FLG=1
+    fi
+    echo "# ------------------------------------------------------------------------"
+    echo "# check go static analytics...(It will only check and not fail.)"
+    echo "# ------------------------------------------------------------------------"
+    # --out-format checkstyle \
+    golangci-lint run --tests=false \
+    --issues-exit-code 0 \
+    --disable-all \
+    -c $CHECK_CONFIG \
+    ./... ; result=$?
 fi
-echo "# ------------------------------------------------------------------------"
-echo "# check go static analytics...(It will only check and not fail.)"
-echo "# ------------------------------------------------------------------------"
-# --out-format checkstyle \
-golangci-lint run --tests=false \
---issues-exit-code 0 \
---disable-all \
--c $CHECK_CONFIG \
-./... ; result=$?
 
-echo "# ------------------------------------------------------------------------"
-echo "# go test..."
-echo "# ------------------------------------------------------------------------"
-mkdir -p $COVER_DIR
-go test $(go list ./... | grep -v /vendor/) -coverprofile=$COVER_DIR/coverage.out
-go tool cover -html=$COVER_DIR/coverage.out -o $COVER_DIR/coverage.html
-if [ -n $IS_COVERTUNA ]; then
-    gocover-cobertura < $COVER_DIR/coverage.out > $COVER_DIR/coverage_cobertura.xml
+if [ IS_TEST -eq 1 ]; then
+    # check gocover-cobertura command
+    if [ -n $IS_COVERTUNA ]; then
+        if [ -z `which gocover-cobertura` ]; then
+            usage "This command need to \"gocover-cobertura\"."
+        fi
+    fi
+    echo "# ------------------------------------------------------------------------"
+    echo "# go test..."
+    echo "# ------------------------------------------------------------------------"
+    mkdir -p $COVER_DIR
+    go test $(go list ./... | grep -v /vendor/) -coverprofile=$COVER_DIR/coverage.out
+    go tool cover -html=$COVER_DIR/coverage.out -o $COVER_DIR/coverage.html
+    if [ -n $IS_COVERTUNA ]; then
+        gocover-cobertura < $COVER_DIR/coverage.out > $COVER_DIR/coverage_cobertura.xml
+    fi
 fi
 
 echo "# ------------------------------------------------------------------------"
