@@ -21,9 +21,9 @@ BASE_CONFIG=${SCRIPT_DIR}/files/golang/base.golangci.yml
 # base check config yaml(duplication/const/cyclomatics)
 CHECK_CONFIG=${SCRIPT_DIR}/files/golang/check.golangci.yml
 # check static analysis
-IS_STATIC_ANALYSIS=1
-# check static analysis
-IS_STATIC_ANALYSIS=1
+IS_STATIC_ANALYSIS=0
+# check go test
+IS_TEST=0
 
 # usage function
 function usage () {
