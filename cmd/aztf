@@ -45,7 +45,7 @@ SCRIPT_DIR=$(cd $(dirname $0); pwd)
 # arguments
 COMMAND=$@
 
-if [ -z $COMMAND ]; then
+if [ $# -eq 0 ]; then
     usage
 fi
 # terraform-state key
