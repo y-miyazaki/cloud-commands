@@ -17,4 +17,4 @@ find $SCRIPT_DIR/cmd -maxdepth 1 -type f | xargs chmod 775
 chmod 775 $SCRIPT_DIR/cmd/files
 find $SCRIPT_DIR/cmd/files -type f | xargs chmod 644
 # copy commands
-cp -rp ${SCRIPT_DIR}/cmd/* $INSTALL_DIR
+sudo cp -rp ${SCRIPT_DIR}/cmd/* $INSTALL_DIR
