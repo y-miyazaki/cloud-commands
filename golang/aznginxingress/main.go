@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/urfave/cli"
+	"github.com/y-miyazaki/cloud-commands/pkg/command"
 )
 
 func run(args []string) error {
@@ -116,12 +117,12 @@ func run(args []string) error {
 			// nginx ingress check namespace & create namespace
 			// ------------------------------------------------------------------------
 			commandStr := "kubectl get ns | grep " + nginxNamespace + " | wc -l | tr -d \"\\n\""
-			out, err := execCommandStr(commandStr)
+			out, err := command.OutputStr(commandStr, true)
 			if err != nil {
 				return err
 			}
 			if out == "0" {
-				_, err = execCommand("kubectl", "create", "namespace", nginxNamespace)
+				_, err = command.Output("kubectl", true, "create", "namespace", nginxNamespace)
 				if err != nil {
 					return err
 				}
@@ -131,7 +132,7 @@ func run(args []string) error {
 			// https://docs.microsoft.com/ja-jp/azure/aks/ingress-tls#create-an-ingress-controller
 			// ------------------------------------------------------------------------
 			commandStr = "helm list | grep " + nginxReleaseName + " | wc -l | tr -d \"\\n\""
-			out, err = execCommandStr(commandStr)
+			out, err = command.OutputStr(commandStr, true)
 			if err != nil {
 				return err
 			}
@@ -153,7 +154,7 @@ func run(args []string) error {
 				// other options
 				commandStr = commandStr + " " + nginxOtherOptions
 
-				_, err = execCommandStr(commandStr)
+				_, err = command.OutputStr(commandStr, true)
 				if err != nil {
 					return err
 				}
@@ -162,7 +163,7 @@ func run(args []string) error {
 			// Use Helm to deploy an Cert Manager
 			// ------------------------------------------------------------------------
 			commandStr = "helm list | grep " + certManagerReleaseName + " | wc -l | tr -d \"\\n\""
-			out, err = execCommandStr(commandStr)
+			out, err = command.OutputStr(commandStr, true)
 			if err != nil {
 				return err
 			}
@@ -171,40 +172,40 @@ func run(args []string) error {
 				// see document.
 				// https://cert-manager.io/docs/installation/kubernetes/
 				commandStr = "kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-" + certManagerVersion + "/deploy/manifests/00-crds.yaml"
-				_, err = execCommandStr(commandStr)
+				_, err = command.OutputStr(commandStr, true)
 				if err != nil {
 					return err
 				}
 
 				// cert manager check namespace & create namespace
 				commandStr = "kubectl get ns | grep " + certManagerNamespace + " | wc -l | tr -d \"\\n\""
-				out, err = execCommandStr(commandStr)
+				out, err = command.OutputStr(commandStr, true)
 				if err != nil {
 					return err
 				}
 				if out == "0" {
-					_, err = execCommand("kubectl", "create", "namespace", certManagerNamespace)
+					_, err = command.Output("kubectl", true, "create", "namespace", certManagerNamespace)
 					if err != nil {
 						return err
 					}
 				}
 				// Label the cert-manager namespace to disable resource validation
-				_, err = execCommand("kubectl", "label", "namespace", "--overwrite", certManagerNamespace, "certmanager.k8s.io/disable-validation=true")
+				_, err = command.Output("kubectl", true, "label", "namespace", "--overwrite", certManagerNamespace, "certmanager.k8s.io/disable-validation=true")
 				if err != nil {
 					return err
 				}
 				// Add the Jetstack Helm repository
-				_, err = execCommandStr("helm repo add jetstack https://charts.jetstack.io")
+				_, err = command.OutputStr("helm repo add jetstack https://charts.jetstack.io", true)
 				if err != nil {
 					return err
 				}
 				// Update your local Helm chart repository cache
-				_, err = execCommandStr("helm repo update")
+				_, err = command.OutputStr("helm repo update", true)
 				if err != nil {
 					return err
 				}
 				// Update your local Helm chart repository cache
-				_, err = execCommandStr("helm install --name " + certManagerReleaseName + " --namespace " + certManagerNamespace + " --version v" + certManagerVersion + ".0 " + certManagerOtherOptions + " jetstack/cert-manager")
+				_, err = command.OutputStr("helm install --name "+certManagerReleaseName+" --namespace "+certManagerNamespace+" --version v"+certManagerVersion+".0 "+certManagerOtherOptions+" jetstack/cert-manager", true)
 				if err != nil {
 					return err
 				}
@@ -222,8 +223,8 @@ func run(args []string) error {
 			fmt.Println("kubectl describe certificate {your secret name} --namespace " + nginxNamespace)
 		}
 		if uninstall {
-			_, _ = execCommandStr("helm delete --purge " + nginxReleaseName)
-			_, _ = execCommandStr("helm delete --purge " + certManagerReleaseName)
+			_, _ = command.OutputStr("helm delete --purge "+nginxReleaseName, true)
+			_, _ = command.OutputStr("helm delete --purge "+certManagerReleaseName, true)
 		}
 		return nil
 	}
