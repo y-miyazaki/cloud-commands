@@ -6,7 +6,7 @@
 #--------------------------------------------------------------
 set -e
 # az login
-if [ -n ${ARM_CLIENT_ID} ] && [ -n ${ARM_CLIENT_SECRET} ] && [ -n ${ARM_TENANT_ID} ]; then
+if [ ! -z ${ARM_CLIENT_ID} ] && [ ! -z ${ARM_CLIENT_SECRET} ] && [ ! -z ${ARM_TENANT_ID} ]; then
     az login --service-principal --username ${ARM_CLIENT_ID} --password ${ARM_CLIENT_SECRET} --tenant ${ARM_TENANT_ID}
 fi
 
