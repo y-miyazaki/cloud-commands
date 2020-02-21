@@ -50,8 +50,8 @@ az login
 az ad sp create-for-rbac -n "${SERVICE_PRINCIPAL_NAME}" --role owner --scope="/subscriptions/${SUBSCRIPTION_ID}" --year 99
 az account show --query "{subscriptionId:id, tenantId:tenantId}"
 
-if [ -n $AZURE_ACTIVE_DIRECTORY_GRAPH ]; then
-    if [ -n $ARM_CLIENT_ID ]; then
+if [ ! -z $AZURE_ACTIVE_DIRECTORY_GRAPH ]; then
+    if [ ! -z $ARM_CLIENT_ID ]; then
         # Azure Active Directory Graph->Application.ReadWrite.All
         az ad app permission add --id $ARM_CLIENT_ID --api 00000002-0000-0000-c000-000000000000 --api-permissions 311a71cc-e848-46a1-bdf8-97ff7156d8e6=Role
         # Azure Active Directory Graph->Directroy.Read.All
