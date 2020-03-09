@@ -190,7 +190,7 @@ func run(args []string) error {
 					}
 				}
 				// Label the cert-manager namespace to disable resource validation
-				_, err = command.Output("kubectl", true, "label", "namespace", "--overwrite", certManagerNamespace, "certmanager.k8s.io/disable-validation=true")
+				_, err = command.Output("kubectl", true, "label", "namespace", "--overwrite", certManagerNamespace, "cert-manager.io/disable-validation=true")
 				if err != nil {
 					return err
 				}
