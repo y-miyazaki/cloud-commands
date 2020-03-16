@@ -1,0 +1,65 @@
+#!/bin/bash
+#--------------------------------------------------------------
+# Convert crt file to pfx/pem format.
+#--------------------------------------------------------------
+set -e
+
+# variables
+DIR=certs
+
+# usage function
+function usage () {
+    echo $1
+    cat <<EOF
+
+This command converts crt to pfx/pem format
+
+Usage:
+    $(basename ${0}) -f {crt file} [<options>]
+    $(basename ${0}) -f ./san.txt
+    $(basename ${0}) -f ./san.txt -o ./certs
+
+Options:
+    -f {crt file}         crt file path.
+    -k {key file}         private key file path.
+    -o {output directory} output pfx/pem certificate directory. (default:certs)
+    -h                    Usage $(basename ${0})
+EOF
+    exit 1
+}
+
+while getopts f:hk:o: opt
+do
+    case $opt in
+        f ) CRT_FILE=$OPTARG ;;
+        k ) KEY_FILE=$OPTARG ;;
+        o ) DIR=$OPTARG ;;
+        h ) usage ;;
+        \? ) usage ;;
+    esac
+done
+
+# check
+if [ -z $CRT_FILE ]; then
+    usage
+fi
+# check
+if [ -z $KEY_FILE ]; then
+    usage
+fi
+# check openssl command
+if [ -z `which openssl` ]; then
+    usage "This command need to \"openssl\"."
+fi
+
+# make directory
+mkdir -p $DIR
+
+# no pass secret key.
+openssl rsa -in $KEY_FILE -out $DIR/server_no_pass.key
+
+# create pfx
+openssl pkcs12 -export -out $DIR/server.pfx -inkey $DIR/server_no_pass.key -in $CRT_FILE
+
+# create pem
+openssl pkcs12 -in $DIR/server.pfx -out $DIR/server.pem
