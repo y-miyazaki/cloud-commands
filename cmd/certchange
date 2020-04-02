@@ -16,8 +16,8 @@ This command converts crt to pfx/pem format
 
 Usage:
     $(basename ${0}) -f {crt file} [<options>]
-    $(basename ${0}) -f ./san.txt
-    $(basename ${0}) -f ./san.txt -o ./certs
+    $(basename ${0}) -f ./server.crt
+    $(basename ${0}) -f ./server.crt -o ./certs
 
 Options:
     -f {crt file}         crt file path.
