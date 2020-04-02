@@ -19,6 +19,7 @@ terraform {
 #--------------------------------------------------------------
 provider "azurerm" {
   version = "##AZURERM_VERSION##"
+  features {}
 }
 provider "azuread" {
   version = "##AZURERD_VERSION##"

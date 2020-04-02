@@ -95,3 +95,20 @@ echo "kubectl get events"
 echo "ex) kubectl get events"
 echo "ex) kubectl get events -A"
 echo -e "\n"
+
+# kustomize
+echo "------------------------------------------------------------------------"
+echo "Kustomize"
+echo "https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/"
+echo "------------------------------------------------------------------------"
+echo # apply kustomize
+echo "kubectl apply -k {directory}"
+echo "or"
+echo "kubectl kustomize {directory} | kubectl apply -f -"
+echo # delete kustomize
+echo "kubectl delete -k {directory}"
+echo "or"
+echo "kubectl kustomize {directory} | kubectl delete -f -"
+echo # check templates
+echo "kubectl kustomize {directory}"
+echo -e "\n"
