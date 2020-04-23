@@ -210,16 +210,16 @@ func run(args []string) error {
 					return err
 				}
 			}
-			fmt.Println("# ------------------------------------------------------------------------")
+			fmt.Println("#------------------------------------------------------------------------")
 			fmt.Println("# Nginx Ingress associates ip address now.")
 			fmt.Println("# Please check this following command.")
-			fmt.Println("# ------------------------------------------------------------------------")
+			fmt.Println("#------------------------------------------------------------------------")
 			fmt.Println("kubectl get service -l app=nginx-ingress --namespace " + nginxNamespace)
 
-			fmt.Println("# ------------------------------------------------------------------------")
+			fmt.Println("#------------------------------------------------------------------------")
 			fmt.Println("# describe Certificate.")
 			fmt.Println("# Please check this following command.")
-			fmt.Println("# ------------------------------------------------------------------------")
+			fmt.Println("#------------------------------------------------------------------------")
 			fmt.Println("kubectl describe certificate {your secret name} --namespace " + nginxNamespace)
 		}
 		if uninstall {

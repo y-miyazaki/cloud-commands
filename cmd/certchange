@@ -57,9 +57,17 @@ mkdir -p $DIR
 
 # no pass secret key.
 openssl rsa -in $KEY_FILE -out $DIR/server_no_pass.key
+echo ""
 
 # create pfx
+echo "#--------------------------------------------------------------"
+echo "# export pfx file..."
+echo "#--------------------------------------------------------------"
 openssl pkcs12 -export -out $DIR/server.pfx -inkey $DIR/server_no_pass.key -in $CRT_FILE
+echo ""
 
 # create pem
+echo "#--------------------------------------------------------------"
+echo "# export pem file..."
+echo "#--------------------------------------------------------------"
 openssl pkcs12 -in $DIR/server.pfx -out $DIR/server.pem

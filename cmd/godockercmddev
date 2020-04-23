@@ -1,10 +1,10 @@
 #!/bin/bash
-# ------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # Docker CMD
 # This shell is a script for CMD called in the following repository.
 # 1. Keep the container.
 # 2. Automatically configure ssh for the private repository of a specific domain.
-# ------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # SSH for private repository
 if [ ! -z $GIT_DOMAIN ]; then
     ssh-keyscan ${GIT_DOMAIN} >> /root/.ssh/known_hosts && \

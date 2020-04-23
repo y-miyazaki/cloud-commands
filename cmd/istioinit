@@ -1,14 +1,14 @@
 #!/bin/bash
-# ------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # Install istio from helm
 # check global options list
 # https://istio.io/docs/reference/config/installation-options/#global-options
-# ------------------------------------------------------------------------
+#------------------------------------------------------------------------
 set -e
 
-# ------------------------------------------------------------------------
+#------------------------------------------------------------------------
 # variables
-# ------------------------------------------------------------------------
+#------------------------------------------------------------------------
 NAME=`basename $0`
 ISTIO_VERSION=${ISTIO_VERSION:-1.3.5}
 NAMESPACE=istio-system
@@ -29,9 +29,9 @@ if [ $INSTALL_FLG = "install" ]; then
     # install istio
     helm repo add istio.io https://storage.googleapis.com/istio-release/releases/$ISTIO_VERSION/charts/
     helm repo update
-    echo "# ------------------------------------------------------------------------"
+    echo "#------------------------------------------------------------------------"
     echo "# install istio"
-    echo "# ------------------------------------------------------------------------"
+    echo "#------------------------------------------------------------------------"
     WC=`kubectl get crds | grep 'istio.io' | wc -l`
     if [ $WC -eq 0 ]; then
         # helm install ${ISTIO_DIR}/install/kubernetes/helm/istio-init --name istio-init --namespace $NAMESPACE
@@ -88,19 +88,19 @@ if [ $INSTALL_FLG = "install" ]; then
     #   --set mixer.adapters.stdio.enabled=false \
     #   --namespace istio-system \
     #   --values /istio-${ISTIO_VERSION}/install/kubernetes/helm/istio/values-istio-demo-auth.yaml
-    echo "# ------------------------------------------------------------------------"
+    echo "#------------------------------------------------------------------------"
     echo "# crds list"
-    echo "# ------------------------------------------------------------------------"
+    echo "#------------------------------------------------------------------------"
     kubectl get crds | grep 'istio.io'
     
-    echo "# ------------------------------------------------------------------------"
+    echo "#------------------------------------------------------------------------"
     echo "# istio pod list"
-    echo "# ------------------------------------------------------------------------"
+    echo "#------------------------------------------------------------------------"
     kubectl get pods --all-namespaces | grep $NAMESPACE
     
-    echo "# ------------------------------------------------------------------------"
+    echo "#------------------------------------------------------------------------"
     echo "# enable istio injection"
-    echo "# ------------------------------------------------------------------------"
+    echo "#------------------------------------------------------------------------"
     kubectl label namespace default istio-injection=enabled --overwrite
     kubectl get namespace -L istio-injection
     elif [ $INSTALL_FLG = "uninstall" ]; then

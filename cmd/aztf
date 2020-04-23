@@ -4,14 +4,14 @@
 # main_init.tf generates terraform backend block and provider(azurerm/azuread).
 #
 # if you want to run this script, need to add this following environment.
-# - ENV
-# - ARM_CLIENT_ID
-# - ARM_CLIENT_SECRET
-# - ARM_SUBSCRIPTION_ID
-# - STORAGE_ACCOUNT_NAME
-# - RESOURCE_GROUP_NAME
-# - CONTAINER_NAME
-# - IS_GENERATE_PROVIDER
+#- ENV
+#- ARM_CLIENT_ID
+#- ARM_CLIENT_SECRET
+#- ARM_SUBSCRIPTION_ID
+#- STORAGE_ACCOUNT_NAME
+#- RESOURCE_GROUP_NAME
+#- CONTAINER_NAME
+#- IS_GENERATE_PROVIDER
 #--------------------------------------------------------------
 set -e
 
