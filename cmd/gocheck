@@ -17,9 +17,7 @@ DIR=.
 # output coverage directory
 COVER_DIR=coverage
 # base check config yaml
-BASE_CONFIG=${SCRIPT_DIR}/files/golang/base.golangci.yml
-# base check config yaml(duplication/const/cyclomatics)
-CHECK_CONFIG=${SCRIPT_DIR}/files/golang/check.golangci.yml
+GOLANGCI_LINT_CONFIG=${SCRIPT_DIR}/files/golang/base.golangci.yml
 # check static analysis
 IS_STATIC_ANALYSIS=0
 # check go test
@@ -35,12 +33,15 @@ This command uses go and golangci-lint for unit testing and static analysis.
 Usage:
     $(basename ${0}) [<options>]
     $(basename ${0})
-    $(basename ${0}) -a ./base.yaml -b ./check.yaml -c
-    $(basename ${0}) -a ./base.yaml -b ./check.yaml -c -d /go/src/github.com/hogehoge/hogehoge -o cover
+    # golangci-lint
+    $(basename ${0}) -a ./golangci-lint.yaml
+    # unit test
+    $(basename ${0}) -c -d /go/src/github.com/hogehoge/hogehoge -t -o cover
+    # golangci-lint and unit test
+    $(basename ${0}) -a ./golangci-lint.yaml -c -d /go/src/github.com/hogehoge/hogehoge -t -o cover
 
 Options:
-    -a {base check yaml}           static analytics yaml file(for check error) (default:${BASE_CONFIG})
-    -b {check yaml}                static analytics yaml file(for only check) (default:${CHECK_CONFIG})
+    -a {golangci-lint yaml}        static analytics yaml file(for check error) (default:${GOLANGCI_LINT_CONFIG})
     -c                             If set, a covertuna-based coverage file is output.
     -d {target directory}          Analysis target directory (default:.)
     -o {output coverage directory} Output coverage directory (default:coverage)
@@ -51,11 +52,10 @@ EOF
     exit 1
 }
 
-while getopts a:b:cd:ho:st opt
+while getopts a:cd:ho:st opt
 do
     case $opt in
-        a ) BASE_CONFIG=$OPTARG ;;
-        b ) CHECK_CONFIG=$OPTARG ;;
+        a ) GOLANGCI_LINT_CONFIG=$OPTARG ;;
         c ) IS_COVERTUNA=1 ;;
         d ) DIR=$OPTARG ;;
         o ) COVER_DIR=$OPTARG ;;
@@ -88,22 +88,18 @@ if [ $IS_STATIC_ANALYSIS -eq 1 ]; then
     golangci-lint run --tests=false \
     --issues-exit-code 1 \
     --disable-all \
-    -c $BASE_CONFIG \
+    -c $GOLANGCI_LINT_CONFIG \
     ./... ; result=$?
     set -e
     if [ $result -eq 1 ]; then
-        ERR_FLG=1
+        echo "Static analysis failed..."
+        echo ""
+        exit 1
+    else
+        echo "Static analysis successed..."
     fi
-    echo "#------------------------------------------------------------------------"
-    echo "# check go static analytics...(It will only check and not fail.)"
-    echo "#------------------------------------------------------------------------"
-    # --out-format checkstyle \
-    golangci-lint run --tests=false \
-    --issues-exit-code 0 \
-    --disable-all \
-    -c $CHECK_CONFIG \
-    ./... ; result=$?
 fi
+echo ""
 
 if [ $IS_TEST -eq 1 ]; then
     # check gocover-cobertura command
@@ -122,14 +118,4 @@ if [ $IS_TEST -eq 1 ]; then
         gocover-cobertura < $COVER_DIR/coverage.out > $COVER_DIR/coverage_cobertura.xml
     fi
 fi
-
-echo "#------------------------------------------------------------------------"
-echo "# result"
-echo "#------------------------------------------------------------------------"
-if [ $ERR_FLG -eq 1 ]; then
-    echo "Static analysis failed..."
-    exit 1
-else
-    echo "Static analysis successed..."
-    exit 0
-fi
+echo ""
