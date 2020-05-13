@@ -1,0 +1,75 @@
+#!/bin/bash
+#--------------------------------------------------------------
+# This script runs terraform command and create main_init.tf file.
+# main_init.tf generates terraform backend block and provider(github).
+#
+# if you want to run this script, need to add this following environment.
+#- IS_GENERATE_PROVIDER
+#- GITHUB_TOKEN
+#- GITHUB_INDIVISUAL
+#- GITHUB_ORGANIZATION
+#--------------------------------------------------------------
+set -e
+
+# name
+NAME=`basename $0`
+
+# usage function
+function usage () {
+    if [ ! -z $1 ]; then
+        echo "error: $(basename ${0}) needs $1 environment parameter."
+    fi
+    cat <<EOF
+
+This script runs terraform command and create main_init.tf file.
+main_init.tf generates terraform backend block and provider(github).
+
+Usage:
+    $(basename ${0}) {commands} [<options>]
+    $(basename ${0}) plan
+    $(basename ${0}) apply
+
+Options:
+    same terraform command options
+EOF
+    exit 1
+}
+
+# script directory
+SCRIPT_DIR=$(cd $(dirname $0); pwd)
+
+# arguments
+COMMAND=$@
+
+if [ $# -eq 0 ]; then
+    usage
+fi
+
+# check environment
+if [ -z $ENV ]; then
+    usage ENV
+    exit 1
+fi
+if [ -z $GITHUB_TOKEN ]; then
+    usage GITHUB_TOKEN
+fi
+if [ -z $GITHUB_INDIVIDUAL ]; then
+    usage GITHUB_INDIVIDUAL
+fi
+if [ $GITHUB_INDIVIDUAL = "false" ] && [ -z $GITHUB_ORGANIZATION ]; then
+    usage GITHUB_ORGANIZATION
+elif [ $GITHUB_INDIVIDUAL = "true" ]; then
+    GITHUB_ORGANIZATION=""
+else
+    GITHUB_ORGANIZATION="organization = \"${GITHUB_ORGANIZATION}\""
+fi
+# export TF_LOG=1
+# export TF_LOG_PATH='./terraform.log'
+rm -f terraform.log crash.log main_init.tf
+if [ $IS_GENERATE_PROVIDER -eq "1" ]; then
+    cat $SCRIPT_DIR/files/github/main.template.tf | sed -e "s/##GITHUB_TOKEN##/${GITHUB_TOKEN}/g" > ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##GITHUB_INDIVIDUAL##@${GITHUB_INDIVIDUAL}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##GITHUB_ORGANIZATION##@${GITHUB_ORGANIZATION}@g" ./main_init.tf
+fi
+terraform init
+terraform $COMMAND -var-file=terraform.$ENV.tfvars
