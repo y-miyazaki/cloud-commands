@@ -1,0 +1,10 @@
+#!/bin/bash
+#--------------------------------------------------------------
+# Docker CMD for Github
+# This script uses this github environment, please check it.
+# https://github.com/y-miyazaki/vscode-remote-development-terraform-github
+#--------------------------------------------------------------
+set -e
+
+# keep container.
+tail -f /dev/null
