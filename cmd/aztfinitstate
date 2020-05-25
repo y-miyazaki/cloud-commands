@@ -8,6 +8,8 @@ set -e
 
 # name
 NAME=`basename $0`
+# init
+IS_STORAGE_ACCOUNT_NAME_AUTO_HASH=0
 DAYS=7
 
 # usage function

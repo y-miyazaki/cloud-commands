@@ -6,8 +6,8 @@
 #--------------------------------------------------------------
 set -e
 
-# name
-NAME=`basename $0`
+# init
+IS_BUCKET_AUTO_HASH=0
 
 # usage function
 function usage () {
@@ -18,9 +18,9 @@ This command creates a S3 Bucket for Terraform State.
 You can also add random hash to bucket name suffix.
 
 Usage:
-    $(basename ${0}) {region} -b {bucket name} [<options>]
-    $(basename ${0}) ap-northeast-1 -b terraform-state
-    $(basename ${0}) ap-northeast-1 -b terraform-state -s
+    $(basename ${0}) -r {region} -b {bucket name} -p {profile}[<options>]
+    $(basename ${0}) -r ap-northeast-1 -b terraform-state
+    $(basename ${0}) -r ap-northeast-1 -b terraform-state -p default -s
 
 Options:
     -b {bucket name}          S3 bucket name
@@ -47,6 +47,24 @@ done
 # script directory
 SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
+# check
+if [ -z "$BUCKET" ]; then
+    usage
+fi
+if [ -z "$REGION" ]; then
+    usage
+fi
+# check aws command
+if [ -z `which aws` ]; then
+    usage "This command need to \"aws\"."
+fi
+
+# option: add hash suffix to bucket name.
+if [ $IS_BUCKET_AUTO_HASH -eq 1 ]; then
+    RM=`awk -v min=10000000 -v max=100000000 'BEGIN{srand(); print int(min+rand()*(max-min+1))}'`
+    BUCKET="${BUCKET}-${RM}"
+fi
+
 # AWS ID取得
 AWS_ID=$( \
     aws sts get-caller-identity \
@@ -55,14 +73,8 @@ AWS_ID=$( \
     $PROFILE \
 ) && echo ${AWS_ID}
 
-# option: add hash suffix to bucket name.
-if [ $IS_BUCKET_AUTO_HASH -eq 1 ]; then
-    HASH=$(echo -n $AWS_ID | sha1sum | sed -e "s/\\s\+\-//")
-    BUCKET="${1}-${HASH}"
-fi
-# check aws command
-if [ -z `which aws` ]; then
-    usage "This command need to \"aws\"."
+if [ -z $AWS_ID ]; then
+    usage "can't get AWS_ID"
 fi
 
 # # バケットの作成
@@ -91,7 +103,7 @@ aws s3api get-bucket-versioning $PROFILE --bucket $BUCKET
 aws s3api get-bucket-encryption $PROFILE --bucket $BUCKET
 
 # sed for account id and bucket.
-cat $SCRIPT_DIR/files/terraform_state_policy.template.json | sed -e "s/##AWS_ID##/${AWS_ID}/g" > $SCRIPT_DIR/files/terraform_state_policy.json
-cat $SCRIPT_DIR/files/terraform_state_policy.json | sed -i '' -e "s/##BUCKET##/${BUCKET}/g" $SCRIPT_DIR/files/terraform_state_policy.json
-aws s3api put-bucket-policy $PROFILE --bucket $BUCKET --policy file://$SCRIPT_DIR/files/terraform_state_policy.json
-rm -f $SCRIPT_DIR/files/terraform_state_policy.json
+cat $SCRIPT_DIR/files/aws/terraform_state_policy.template.json | sed -e "s/##AWS_ID##/${AWS_ID}/g" > $SCRIPT_DIR/files/aws/terraform_state_policy.json
+cat $SCRIPT_DIR/files/aws/terraform_state_policy.json | sed -i -e "s/##BUCKET##/${BUCKET}/g" $SCRIPT_DIR/files/aws/terraform_state_policy.json
+aws s3api put-bucket-policy $PROFILE --bucket $BUCKET --policy file://$SCRIPT_DIR/files/aws/terraform_state_policy.json
+rm -f $SCRIPT_DIR/files/aws/terraform_state_policy.json
