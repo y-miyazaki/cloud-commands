@@ -11,7 +11,6 @@ if [ -n ${GOOGLE_CLOUD_KEYFILE_JSON} ] && [ -n ${PROJECT_ID} ]; then
     /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${GOOGLE_CLOUD_KEYFILE_JSON}
     /root/google-cloud-sdk/bin/gcloud config set core/project ${PROJECT_ID}
 fi
-/root/google-cloud-sdk/bin/gcloud components install --quiet kubectl
 
 # keep container.
 tail -f /dev/null
