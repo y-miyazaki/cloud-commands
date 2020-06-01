@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/urfave/cli"
-	"github.com/y-miyazaki/cloud-commands/pkg/command"
+	"github.com/y-miyazaki/go-common/pkg/command"
 )
 
 // ShowManifests is az acr show-manifests command result.
@@ -63,7 +63,7 @@ func run(args []string) error {
 		// repository delete image tags.
 		if allRepository {
 			var repositories []string
-			out, err := command.OutputStr("az acr repository list --name "+name+" --output table", false)
+			out, err := command.CombinedOutput("az acr repository list --name "+name+" --output table", false)
 			if err != nil {
 				return err
 			}
@@ -107,7 +107,7 @@ func removeImageTags(resourceGroup string, subscription string, name string, rep
 		showManifestsCommand = append(showManifestsCommand, repository)
 	}
 	// get repository image tag lists.
-	out, err := command.Output("az", false, showManifestsCommand...)
+	out, err := command.CombinedOutput("az", false, showManifestsCommand...)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func removeImageTags(resourceGroup string, subscription string, name string, rep
 		if keep <= i {
 			fmt.Printf("%s : %s\n", p.Digest, p.Tags)
 			tmpCommand = append(repositoryDeleteCommand, repository+"@"+p.Digest)
-			_, err := command.Output("az", true, tmpCommand...)
+			_, err := command.CombinedOutput("az", true, tmpCommand...)
 			if err != nil {
 				return err
 			}

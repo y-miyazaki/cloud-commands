@@ -21,7 +21,8 @@
     "**/*.out",
     "**/*.yaml",
     "**/*.yml",
-    "**/*.json"
+    "**/*.json",
+    "**/*.go"
   ],
   "editor.autoIndent": "full", // オートインデント
   "editor.detectIndentation": false, // インデントの自動判別
@@ -84,6 +85,7 @@
     // "scrollbar.shadow": "#0077ff99",
     // "editorLink.activeForeground": "#5555ce"
   },
+  "go.gopath": "/go",
   "go.toolsEnvVars": {
     "GO111MODULE": "on"
   },
@@ -148,5 +150,5 @@
   "terraform.languageServer": {
     "enabled": false,
     "args": []
-  },
+  }
 }
