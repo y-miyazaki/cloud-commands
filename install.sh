@@ -7,7 +7,7 @@ set -e
 # variables
 CLOUD_COMMANDS_VERSION=$1
 INSTALL_DIR=/usr/local/bin
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+SCRIPT_DIR=.
 
 # download cmd.zip and unzip
 curl -L -o cmd.zip https://github.com/y-miyazaki/cloud-commands/releases/download/${CLOUD_COMMANDS_VERSION}/cmd.zip
