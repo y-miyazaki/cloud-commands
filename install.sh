@@ -24,7 +24,7 @@ find $SCRIPT_DIR/cloud-commands/cmd -maxdepth 1 -type f | xargs chmod 775
 chmod 775 $SCRIPT_DIR/cloud-commands/cmd/files
 find $SCRIPT_DIR/cloud-commands/cmd/files -type f | xargs chmod 644
 # copy commands
-sudo cp -rp $SCRIPT_DIR/cloud-commands/cmd/* $INSTALL_DIR
+cp -rp $SCRIPT_DIR/cloud-commands/cmd/* $INSTALL_DIR
 
 # remove files
 rm -f cmd.zip
