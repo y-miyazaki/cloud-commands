@@ -12,7 +12,7 @@ SCRIPT_DIR=.
 # download cmd.zip and unzip
 curl -L -o cmd.zip https://github.com/y-miyazaki/cloud-commands/releases/download/${CLOUD_COMMANDS_VERSION}/cmd.zip
 mkdir -p $SCRIPT_DIR/cloud-commands
-ls
+ls -la
 unzip -d $SCRIPT_DIR/cloud-commands cmd.zip
 
 # create directory and copy commands
