@@ -6,7 +6,7 @@
 #--------------------------------------------------------------
 set -e
 
-NAME=`basename $0`
+NAME=$(basename "${0}")
 
 if [ $# -ne 2 ] ; then
     echo "USAGE: $NAME {username} {password}"
@@ -21,7 +21,7 @@ SERVER_CERT_DIR="certs/server"
 CA_CERT=${SERVER_CERT_DIR}/caCert.pem
 CA_KEY=${SERVER_CERT_DIR}/caKey.pem
 
-if [ ! -f ${CA_CERT} -o ! -f ${CA_KEY} ] ; then
+if [ ! -f ${CA_CERT} ] || [ ! -f ${CA_KEY} ] ; then
     echo "Server Certification/Key file not found. Try again after creating server cert/key."
     exit 1
 fi
@@ -30,7 +30,7 @@ USER_KEY="${TARGETDIR}/${USERNAME}Key.pem"
 USER_CERT="${TARGETDIR}/${USERNAME}Cert.pem"
 USER_P12="${TARGETDIR}/${USERNAME}.p12"
 
-mkdir -p ${TARGETDIR}
+mkdir -p "${TARGETDIR}"
 
 ipsec pki --gen --outform pem > "${USER_KEY}"
 ipsec pki --pub --in "${USER_KEY}" | \

@@ -12,7 +12,7 @@ CA_KEY=${TARGETDIR}/caKey.pem
 CA_CERT=${TARGETDIR}/caCert.pem
 CA_DER_B64=${TARGETDIR}/serverCert.txt
 
-if [ -f ${CA_KEY} -a -f ${CA_CERT} -a -f ${CA_DER_B64} ] ; then
+if [ -f ${CA_KEY} ] && [ -f ${CA_CERT} ] && [ -f ${CA_DER_B64} ] ; then
     echo "Already created. If you want to recreate, remove first."
     exit 1
 fi

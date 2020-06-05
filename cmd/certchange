@@ -9,21 +9,21 @@ DIR=certs
 
 # usage function
 function usage () {
-    echo $1
+    echo "${1}"
     cat <<EOF
 
 This command converts crt to pfx/pem format
 
 Usage:
-    $(basename ${0}) -f {crt file} -k {privatekey file} [<options>]
-    $(basename ${0}) -f ./server.crt -k private.key
-    $(basename ${0}) -f ./server.crt -k private.key -o ./certs
+    $(basename "${0}") -f {crt file} -k {privatekey file} [<options>]
+    $(basename "${0}") -f ./server.crt -k private.key
+    $(basename "${0}") -f ./server.crt -k private.key -o ./certs
 
 Options:
     -f {crt file}         crt file path.
     -k {key file}         private key file path.
     -o {output directory} output pfx/pem certificate directory. (default:certs)
-    -h                    Usage $(basename ${0})
+    -h                    Usage $(basename "${0}")
 EOF
     exit 1
 }
@@ -40,34 +40,34 @@ do
 done
 
 # check
-if [ -z $CRT_FILE ]; then
+if [ -z "${CRT_FILE}" ]; then
     usage
 fi
 # check
-if [ -z $KEY_FILE ]; then
+if [ -z "${KEY_FILE}" ]; then
     usage
 fi
 # check openssl command
-if [ -z `which openssl` ]; then
+if [ -z "$(command -v openssl)" ]; then
     usage "This command need to \"openssl\"."
 fi
 
 # make directory
-mkdir -p $DIR
+mkdir -p "${DIR}"
 
 # no pass secret key.
-openssl rsa -in $KEY_FILE -out $DIR/server_no_pass.key
+openssl rsa -in "${KEY_FILE}" -out "${DIR}"/server_no_pass.key
 echo ""
 
 # create pfx
 echo "#--------------------------------------------------------------"
 echo "# export pfx file..."
 echo "#--------------------------------------------------------------"
-openssl pkcs12 -export -out $DIR/server.pfx -inkey $DIR/server_no_pass.key -in $CRT_FILE
+openssl pkcs12 -export -out "${DIR}"/server.pfx -inkey "${DIR}"/server_no_pass.key -in "${CRT_FILE}"
 echo ""
 
 # create pem
 echo "#--------------------------------------------------------------"
 echo "# export pem file..."
 echo "#--------------------------------------------------------------"
-openssl pkcs12 -in $DIR/server.pfx -out $DIR/server.pem
+openssl pkcs12 -in "${DIR}"/server.pfx -out "${DIR}"/server.pem

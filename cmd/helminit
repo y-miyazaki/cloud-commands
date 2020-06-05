@@ -7,11 +7,11 @@
 set -e
 
 # script directory
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 
 IS_TILLER_INSTALL=$(kubectl get serviceaccount -n kube-system | grep tiller | wc -l | tr -d '\n')
-if [ $IS_TILLER_INSTALL -eq "0" ]; then
-    kubectl apply -f $SCRIPT_DIR/files/kubernetes/helm-rbac.yaml
+if [ "${IS_TILLER_INSTALL}" -eq "0" ]; then
+    kubectl apply -f "${SCRIPT_DIR}"/files/kubernetes/helm-rbac.yaml
     helm init --service-account tiller --node-selectors "beta.kubernetes.io/os"="linux"
 else
     echo "Tiller already created."
@@ -24,7 +24,7 @@ helm init --client-only
 for ((i=0; i < 20; i++));
 do
     IS_SET_HELM=$(helm version | grep Server | wc -l | tr -d '\n')
-    if [ $IS_SET_HELM -eq "1" ]; then
+    if [ "${IS_SET_HELM}" -eq "1" ]; then
         kubectl get serviceaccount -n kube-system | grep tiller
         helm version
         echo "Tiller server runs."

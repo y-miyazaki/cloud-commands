@@ -10,54 +10,54 @@ NAMESPACE=${1:-default}
 echo "#------------------------------------------------------------------------"
 echo "# Node"
 echo "#------------------------------------------------------------------------"
-kubectl --namespace ${NAMESPACE} get no -o wide
+kubectl --namespace "${NAMESPACE}" get no -o wide
 echo -e "\n"
 
 # ingrees
 echo "#------------------------------------------------------------------------"
 echo "# Ingress"
 echo "#------------------------------------------------------------------------"
-kubectl --namespace ${NAMESPACE} get ingress -o wide
+kubectl --namespace "${NAMESPACE}" get ingress -o wide
 echo -e "\n"
 
 # service
 echo "#------------------------------------------------------------------------"
 echo "# Service"
 echo "#------------------------------------------------------------------------"
-kubectl --namespace ${NAMESPACE} get service -o wide
+kubectl --namespace "${NAMESPACE}" get service -o wide
 echo -e "\n"
 
 # HorizontalPodAutoscaler
 echo "#------------------------------------------------------------------------"
 echo "# HorizontalPodAutoscaler"
 echo "#------------------------------------------------------------------------"
-kubectl --namespace ${NAMESPACE} get hpa -o wide
+kubectl --namespace "${NAMESPACE}" get hpa -o wide
 echo -e "\n"
 
 # Deployment
 echo "#------------------------------------------------------------------------"
 echo "# Deployment"
 echo "#------------------------------------------------------------------------"
-kubectl --namespace ${NAMESPACE} get deployment -o wide
+kubectl --namespace "${NAMESPACE}" get deployment -o wide
 echo -e "\n"
 
 echo "#------------------------------------------------------------------------"
 echo "# Pod"
 echo "#------------------------------------------------------------------------"
 # pod
-kubectl --namespace ${NAMESPACE} get po --show-labels -o wide
+kubectl --namespace "${NAMESPACE}" get po --show-labels -o wide
 echo -e "\n"
 
 # ConfigMap
 echo "#------------------------------------------------------------------------"
 echo "# ConfigMap"
 echo "#------------------------------------------------------------------------"
-kubectl --namespace ${NAMESPACE} get configMap -o wide
+kubectl --namespace "${NAMESPACE}" get configMap -o wide
 echo -e "\n"
 
 # cronjob
 echo "#------------------------------------------------------------------------"
 echo "# Cronjob"
 echo "#------------------------------------------------------------------------"
-kubectl --namespace ${NAMESPACE} get cronjob -o wide
+kubectl --namespace "${NAMESPACE}" get cronjob -o wide
 echo -e "\n"

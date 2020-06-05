@@ -15,13 +15,10 @@
 #--------------------------------------------------------------
 set -e
 
-# name
-NAME=`basename $0`
-
 # usage function
 function usage () {
-    if [ ! -z $1 ]; then
-        echo "error: $(basename ${0}) needs $1 environment parameter."
+    if [ -n "${1}" ]; then
+        echo "error: $(basename "${0}") needs $1 environment parameter."
     fi
     cat <<EOF
 
@@ -29,9 +26,9 @@ This script runs terraform command and create main_init.tf file.
 main_init.tf generates terraform backend block and provider(azurerm/azuread).
 
 Usage:
-    $(basename ${0}) {commands} [<options>]
-    $(basename ${0}) plan
-    $(basename ${0}) apply
+    $(basename "${0}") {commands} [<options>]
+    $(basename "${0}") plan
+    $(basename "${0}") apply
 
 Options:
     same terraform command options
@@ -40,68 +37,68 @@ EOF
 }
 
 # script directory
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 
 # arguments
-COMMAND=$@
+COMMAND=$*
 
 if [ $# -eq 0 ]; then
     usage
 fi
 # terraform-state key
 if [ -e "terraform-state.key" ]; then
-    KEY=`cat terraform-state.key | sed -e "s/[\r\n]\+//g"`
+    KEY=$(cat terraform-state.key | sed -e "s/[\r\n]\+//g")
 else
     KEY=terraform-tfstate
 fi
 # provider azurerm version
 if [ -e "provider-azurerm.version" ]; then
-    AZURERM_VERSION=`cat provider-azurerm.version | sed -e "s/[\r\n]\+//g"`
+    AZURERM_VERSION=$(cat provider-azurerm.version | sed -e "s/[\r\n]\+//g")
 else
-    AZURERM_VERSION="~>1.39.0"
+    AZURERM_VERSION="~>2.0.0"
 fi
 # provider azuread version
 if [ -e "provider-azuread.version" ]; then
-    AZURERD_VERSION=`cat provider-azuread.version | sed -e "s/[\r\n]\+//g"`
+    AZURERD_VERSION=$(cat provider-azuread.version | sed -e "s/[\r\n]\+//g")
 else
     AZURERD_VERSION="~>0.7.0"
 fi
 
 # check environment
-if [ -z $ENV ]; then
+if [ -z "${ENV}" ]; then
     usage ENV
     exit 1
 fi
-if [ -z $ARM_CLIENT_ID ]; then
+if [ -z "${ARM_CLIENT_ID}" ]; then
     usage ARM_CLIENT_ID
 fi
-if [ -z $ARM_CLIENT_SECRET ]; then
+if [ -z "${ARM_CLIENT_SECRET}" ]; then
     usage ARM_CLIENT_SECRET
 fi
-if [ -z $ARM_TENANT_ID ]; then
+if [ -z "${ARM_TENANT_ID}" ]; then
     usage ARM_TENANT_ID
 fi
-if [ -z $ARM_SUBSCRIPTION_ID ]; then
+if [ -z "${ARM_SUBSCRIPTION_ID}" ]; then
     usage ARM_SUBSCRIPTION_ID
 fi
-if [ -z $STORAGE_ACCOUNT_NAME ]; then
+if [ -z "${STORAGE_ACCOUNT_NAME}" ]; then
     usage STORAGE_ACCOUNT_NAME
 fi
-if [ -z $RESOURCE_GROUP_NAME ]; then
+if [ -z "${RESOURCE_GROUP_NAME}" ]; then
     usage RESOURCE_GROUP_NAME
 fi
-if [ -z $CONTAINER_NAME ]; then
+if [ -z "${CONTAINER_NAME}" ]; then
     usage CONTAINER_NAME
 fi
-if [ -z $IS_GENERATE_PROVIDER ]; then
+if [ -z "${IS_GENERATE_PROVIDER}" ]; then
     usage IS_GENERATE_PROVIDER
 fi
 
 # export TF_LOG=1
 # export TF_LOG_PATH='./terraform.log'
 rm -f terraform.log crash.log main_init.tf
-if [ $IS_GENERATE_PROVIDER -eq "1" ]; then
-    cat $SCRIPT_DIR/files/azure/main.template.tf | sed -e "s/##STORAGE_ACCOUNT_NAME##/${STORAGE_ACCOUNT_NAME}/g" > ./main_init.tf
+if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
+    cat "${SCRIPT_DIR}"/files/azure/main.template.tf | sed -e "s/##STORAGE_ACCOUNT_NAME##/${STORAGE_ACCOUNT_NAME}/g" > ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##CONTAINER_NAME##@${CONTAINER_NAME}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##KEY##@${KEY}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##AZURERM_VERSION##@${AZURERM_VERSION}@g" ./main_init.tf

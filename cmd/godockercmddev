@@ -6,8 +6,8 @@
 # 2. Automatically configure ssh for the private repository of a specific domain.
 #------------------------------------------------------------------------
 # SSH for private repository
-if [ ! -z $GIT_DOMAIN ]; then
-    ssh-keyscan ${GIT_DOMAIN} >> /root/.ssh/known_hosts && \
+if [ -n "${GIT_DOMAIN}" ]; then
+    ssh-keyscan "${GIT_DOMAIN}" >> /root/.ssh/known_hosts && \
     echo -e "[url \"git@${GIT_DOMAIN}:\"]\n\tinsteadOf = https://${GIT_DOMAIN}/" >> /root/.gitconfig && \
     echo -e "Host ${GIT_DOMAIN}\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
 fi

@@ -6,10 +6,10 @@
 #--------------------------------------------------------------
 set -e
 
-if [ -n ${GOOGLE_CLOUD_KEYFILE_JSON} ] && [ -n ${PROJECT_ID} ]; then
+if [ -n "${GOOGLE_CLOUD_KEYFILE_JSON}" ] && [ -n "${PROJECT_ID}" ]; then
     # gcloud authentication and install kubectl.
-    /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${GOOGLE_CLOUD_KEYFILE_JSON}
-    /root/google-cloud-sdk/bin/gcloud config set core/project ${PROJECT_ID}
+    /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file "${GOOGLE_CLOUD_KEYFILE_JSON}"
+    /root/google-cloud-sdk/bin/gcloud config set core/project "${PROJECT_ID}"
 fi
 
 # keep container.

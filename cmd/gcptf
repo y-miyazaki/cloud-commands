@@ -14,13 +14,10 @@
 #--------------------------------------------------------------
 set -e
 
-# name
-NAME=`basename $0`
-
 # usage function
 function usage () {
-    if [ ! -z $1 ]; then
-        echo "error: $(basename ${0}) needs $1 environment parameter."
+    if [ -n "${1}" ]; then
+        echo "error: $(basename "${0}") needs $1 environment parameter."
     fi
   cat <<EOF
 
@@ -28,9 +25,9 @@ This script runs terraform command and create main_init.tf file.
 main_init.tf generates terraform backend block and provider(google/google-beta).
 
 Usage:
-    $(basename ${0}) {commands} [<options>]
-    $(basename ${0}) plan
-    $(basename ${0}) apply
+    $(basename "${0}") {commands} [<options>]
+    $(basename "${0}") plan
+    $(basename "${0}") apply
 
 Options:
     same terraform command options
@@ -39,61 +36,61 @@ EOF
 }
 
 # script directory
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 
 # arguments
-COMMAND=$@
+COMMAND=$*
 
-if [ -z $COMMAND ]; then
+if [ -z "${COMMAND}" ]; then
     usage
 fi
 # terraform-state prefix
 if [ -e "terraform-state.prefix" ]; then
-    PREFIX=`cat terraform-state.prefix | sed -e "s/[\r\n]\+//g"`
+    PREFIX=$(cat terraform-state.prefix | sed -e "s/[\r\n]\+//g")
 else
     PREFIX=terraform.tfstate
 fi
 # provider google version
 if [ -e "provider-google.version" ]; then
-    GOOGLE_VERSION=`cat provider-google.version | sed -e "s/[\r\n]\+//g"`
+    GOOGLE_VERSION=$(cat provider-google.version | sed -e "s/[\r\n]\+//g")
 else
     GOOGLE_VERSION="~>3.3.0"
 fi
 # provider google-beta version
 if [ -e "provider-google-beta.version" ]; then
-    GOOGLE_BETA_VERSION=`cat provider-google-beta.version | sed -e "s/[\r\n]\+//g"`
+    GOOGLE_BETA_VERSION=$(cat provider-google-beta.version | sed -e "s/[\r\n]\+//g")
 else
     GOOGLE_BETA_VERSION="~>3.3.0"
 fi
 
 # check environment
-if [ -z $ENV ]; then
+if [ -z "${ENV}" ]; then
     usage ENV
 fi
-if [ -z $BUCKET ]; then
+if [ -z "${BUCKET}" ]; then
     usage BUCKET
 fi
-if [ -z $GOOGLE_CLOUD_KEYFILE_JSON ]; then
+if [ -z "${GOOGLE_CLOUD_KEYFILE_JSON}" ]; then
     usage GOOGLE_CLOUD_KEYFILE_JSON
 fi
-if [ -z $PROJECT_ID ]; then
+if [ -z "${PROJECT_ID}" ]; then
     usage PROJECT_ID
 fi
-if [ -z $REGION ]; then
+if [ -z "${REGION}" ]; then
     usage ZONE
 fi
-if [ -z $ZONE ]; then
+if [ -z "${ZONE}" ]; then
     usage ZONE
 fi
-if [ -z $IS_GENERATE_PROVIDER ]; then
+if [ -z "${IS_GENERATE_PROVIDER}" ]; then
     usage IS_GENERATE_PROVIDER
 fi
 
 # export TF_LOG=1
 # export TF_LOG_PATH='./terraform.log'
 rm -f terraform.log crash.log main_init.tf
-if [ $IS_GENERATE_PROVIDER -eq "1" ]; then
-    cat $SCRIPT_DIR/files/gcp/main.template.tf | sed -e "s/##BUCKET##/${BUCKET}/g" > ./main_init.tf
+if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
+    cat "${SCRIPT_DIR}"/files/gcp/main.template.tf | sed -e "s/##BUCKET##/${BUCKET}/g" > ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##PREFIX##@${PREFIX}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##GOOGLE_CLOUD_KEYFILE_JSON##@${GOOGLE_CLOUD_KEYFILE_JSON}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s/##PROJECT_ID##/${PROJECT_ID}/g" ./main_init.tf

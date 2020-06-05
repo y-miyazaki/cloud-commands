@@ -9,9 +9,7 @@ set -e
 # variables
 #------------------------------------------------------------------------
 # files base path
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
-# error flag
-ERR_FLG=0
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 # check go source directory
 DIR=.
 # output coverage directory
@@ -25,27 +23,27 @@ IS_TEST=0
 
 # usage function
 function usage () {
-    echo $1
+    echo "${1}"
     cat <<EOF
 
 This command uses go and golangci-lint for unit testing and static analysis.
 
 Usage:
-    $(basename ${0}) [<options>]
-    $(basename ${0})
+    $(basename "${0}") [<options>]
+    $(basename "${0}")
     # golangci-lint
-    $(basename ${0}) -a ./golangci-lint.yaml
+    $(basename "${0}") -a ./golangci-lint.yaml
     # unit test
-    $(basename ${0}) -c -d /go/src/github.com/hogehoge/hogehoge -t -o cover
+    $(basename "${0}") -c -d /go/src/github.com/hogehoge/hogehoge -t -o cover
     # golangci-lint and unit test
-    $(basename ${0}) -a ./golangci-lint.yaml -c -d /go/src/github.com/hogehoge/hogehoge -t -o cover
+    $(basename "${0}") -a ./golangci-lint.yaml -c -d /go/src/github.com/hogehoge/hogehoge -t -o cover
 
 Options:
     -a {golangci-lint yaml}        static analytics yaml file(for check error) (default:${GOLANGCI_LINT_CONFIG})
     -c                             If set, a covertuna-based coverage file is output.
     -d {target directory}          Analysis target directory (default:.)
     -o {output coverage directory} Output coverage directory (default:coverage)
-    -h                             Usage $(basename ${0})
+    -h                             Usage $(basename "${0}")
     -s                             If set, check static analysis
     -t                             If set, execute go test
 EOF
@@ -67,17 +65,17 @@ do
 done
 
 # check
-if [ -z $DIR ]; then
+if [ -z "${DIR}" ]; then
     usage
 fi
 # check go command
-if [ -z `which go` ]; then
+if [ -z "$(command -v go)" ]; then
     usage "This command need to \"go\"."
 fi
-cd $DIR
+cd "${DIR}"
 if [ $IS_STATIC_ANALYSIS -eq 1 ]; then
     # check golangci-lint command
-    if [ -z `which golangci-lint` ]; then
+    if [ -z "$(command -v golangci-lint)" ]; then
         usage "This command need to \"golangci-lint\"."
     fi
     echo "#------------------------------------------------------------------------"
@@ -88,7 +86,7 @@ if [ $IS_STATIC_ANALYSIS -eq 1 ]; then
     golangci-lint run --tests=false \
     --issues-exit-code 1 \
     --disable-all \
-    -c $GOLANGCI_LINT_CONFIG \
+    -c "${GOLANGCI_LINT_CONFIG}" \
     ./... ; result=$?
     set -e
     if [ $result -eq 1 ]; then
@@ -103,19 +101,19 @@ echo ""
 
 if [ $IS_TEST -eq 1 ]; then
     # check gocover-cobertura command
-    if [ -n $IS_COVERTUNA ]; then
-        if [ -z `which gocover-cobertura` ]; then
+    if [ -n "${IS_COVERTUNA}" ]; then
+        if [ -z "$(command -v gocover-cobertura)" ]; then
             usage "This command need to \"gocover-cobertura\"."
         fi
     fi
     echo "#------------------------------------------------------------------------"
     echo "# go test..."
     echo "#------------------------------------------------------------------------"
-    mkdir -p $COVER_DIR
-    go test $(go list ./... | grep -v /vendor/) -coverprofile=$COVER_DIR/coverage.out
-    go tool cover -html=$COVER_DIR/coverage.out -o $COVER_DIR/coverage.html
-    if [ -n $IS_COVERTUNA ]; then
-        gocover-cobertura < $COVER_DIR/coverage.out > $COVER_DIR/coverage_cobertura.xml
+    mkdir -p "${COVER_DIR}"
+    go test "$(go list ./... | grep -v /vendor/)" -coverprofile="${COVER_DIR}"/coverage.out
+    go tool cover -html="${COVER_DIR}"/coverage.out -o "${COVER_DIR}"/coverage.html
+    if [ -n "${IS_COVERTUNA}" ]; then
+        gocover-cobertura < "${COVER_DIR}"/coverage.out > "${COVER_DIR}"/coverage_cobertura.xml
     fi
 fi
 echo ""

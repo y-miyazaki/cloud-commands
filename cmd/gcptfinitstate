@@ -11,22 +11,22 @@ IS_BUCKET_AUTO_HASH=0
 
 # usage function
 function usage () {
-    echo $1
+    echo "${1}"
     cat <<EOF
 
 This command creates a Cloud Storage for Terraform State.
 You can also add random hash to bucket name suffix.
 
 Usage:
-    $(basename ${0}) -p {project name} -b {bucket name} -r {region} [<options>]
-    $(basename ${0}) -p yourproject -b terraform-state -r asia-northeast-1 -a
+    $(basename "${0}") -p {project name} -b {bucket name} -r {region} [<options>]
+    $(basename "${0}") -p yourproject -b terraform-state -r asia-northeast-1 -a
 
 Options:
     -a                        If set, a random hash will suffix Cloud Storage bucket name.
     -b {bucket name}          Name of Cloud Storage bucket
     -p {project name}         GCP Project name
     -r {region}               Cloud Storage region
-    -h                        Usage $(basename ${0})
+    -h                        Usage $(basename "${0}")
 EOF
     exit 1
 }
@@ -44,33 +44,33 @@ do
 done
 
 # script directory
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 # check
-if [ -z $BUCKET ]; then
+if [ -z "${BUCKET}" ]; then
     usage
 fi
-if [ -z $REGION ]; then
+if [ -z "${REGION}" ]; then
     usage
 fi
 
 # option: add hash suffix to bucket name.
 IS_BUCKET_AUTO_HASH=${3:+0}
-if [ $IS_BUCKET_AUTO_HASH -eq 1 ]; then
-    HASH=$(echo -n $PROJECT_ID | sha1sum | sed -e "s/\\s\+\-//")
+if [ "${IS_BUCKET_AUTO_HASH}" -eq 1 ]; then
+    HASH=$(echo -n "${PROJECT_ID}" | sha1sum | sed -e "s/\\s\+\-//")
     BUCKET="${BUCKET}-${HASH}"
 fi
 # check gsutil command
-if [ -z `which gsutil` ]; then
+if [ -z "$(command -v gsutil)" ]; then
     usage "This command need to \"gsutil\"."
 fi
 
 set +e
 # create bucket to GCS
-gsutil mb -c regional -l $REGION gs://$BUCKET
+gsutil mb -c regional -l "${REGION}" gs://"${BUCKET}"
 set -e
 # versioning on
-gsutil versioning set on gs://$BUCKET
+gsutil versioning set on gs://"${BUCKET}"
 # set lifecycle
-gsutil lifecycle set $SCRIPT_DIR/files/terraform_init_state_lifecycle.json gs://$BUCKET
+gsutil lifecycle set "${SCRIPT_DIR}"/files/terraform_init_state_lifecycle.json gs://"${BUCKET}"
 # set lifecycle
 gsutil ls -a
