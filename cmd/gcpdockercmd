@@ -1,8 +1,7 @@
 #!/bin/bash
 #--------------------------------------------------------------
 # Docker CMD for GCP
-# This script uses this gcp environment, please check it.
-# https://github.com/y-miyazaki/vscode-remote-development-terraform-gcp
+# This script uses this gcp environment
 #--------------------------------------------------------------
 set -e
 

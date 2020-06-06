@@ -1,8 +1,7 @@
 #!/bin/bash
 #--------------------------------------------------------------
 # Docker CMD for Github
-# This script uses this github environment, please check it.
-# https://github.com/y-miyazaki/vscode-remote-development-terraform-github
+# This script uses this github environment.
 #--------------------------------------------------------------
 set -e
 
