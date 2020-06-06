@@ -2,8 +2,8 @@
 name: Check Cloud-Commands
 on:
   pull_request:
-    paths:
-      - "cmd/**"
+    # paths:
+    #   - "cmd/**"
 jobs:
   check:
     runs-on: ubuntu-latest
