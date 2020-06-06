@@ -13,9 +13,10 @@
     "shellcheck",
     "golangci",
     "urfave",
-    "miyazaki",
     "buildkit",
-    "workdir"
+    "workdir",
+    "miyazaki",
+    "ymiyazakixyz",
   ],
   "cSpell.ignorePaths": [
     "**/package-lock.json",
