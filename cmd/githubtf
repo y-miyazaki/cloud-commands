@@ -69,4 +69,4 @@ if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
     cat ./main_init.tf | sed -i -e "s@##GITHUB_ORGANIZATION##@${GITHUB_ORGANIZATION}@g" ./main_init.tf
 fi
 terraform init
-terraform $COMMAND -var-file=terraform.$ENV.tfvars
+terraform "${COMMAND}" -var-file=terraform."${ENV}".tfvars

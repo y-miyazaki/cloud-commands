@@ -8,12 +8,19 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: "code: check out code"
         uses: actions/checkout@v2
-      - name: Archive cmd
+      - name: "go: build"
+        run: |
+          echo $SSH_PRIVATE_KEY >> ./id_rsa
+          chmod +x scripts/*
+          DOCKER_BUILDKIT=1 docker build -f docker/build/Dockerfile --secret id=ssh,src=./id_rsa --build-arg WORKDIR=/go/src/github.com/y-miyazaki/cloud-commands -t golang-build:latest .
+          docker run --rm -v $PWD:/go/src/github.com/y-miyazaki/cloud-commands --name golang-build golang-build:latest -t ./scripts/build.sh
+          rm ./id_rsa
+      - name: "cmd: archive"
         run: |
           zip -r cmd.zip cmd
-      - name: Create Release
+      - name: "release: create"
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -28,7 +35,7 @@ jobs:
           draft: false
           prerelease: false
       # https://github.com/actions/upload-release-asset
-      - name: Upload Release Asset
+      - name: "release: upload assets"
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
@@ -38,7 +45,7 @@ jobs:
           asset_path: ./cmd.zip
           asset_name: cmd.zip
           asset_content_type: application/zip
-      - name: Slack Notification for failed Build.
+      - name: "slack: notification for failed build."
         if: failure()
         uses: rtCamp/action-slack-notify@v2.0.2
         env:

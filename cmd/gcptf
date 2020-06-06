@@ -100,4 +100,4 @@ if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
     cat ./main_init.tf | sed -i -e "s@##GOOGLE_BETA_VERSION##@${GOOGLE_BETA_VERSION}@g" ./main_init.tf
 fi
 terraform init
-terraform $COMMAND -var-file=terraform.$ENV.tfvars
+terraform "${COMMAND}" -var-file=terraform."${ENV}".tfvars

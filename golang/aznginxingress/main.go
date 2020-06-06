@@ -25,7 +25,7 @@ func run(args []string) error {
          --set controller.service.externalTrafficPolicy=Local \
          --namespace {nginxNamespace} \
          --name {nginxReleaseName}
-      
+
       Reference document
          https://docs.microsoft.com/ja-jp/azure/aks/ingress-static-ip#create-an-ingress-controller
          https://github.com/helm/charts/tree/master/stable/nginx-ingress
@@ -91,125 +91,41 @@ func run(args []string) error {
 			Usage: "Specify the helm install option to set cert manager at the time of installation.",
 		},
 		cli.BoolFlag{
-			Name:  "install, i",
-			Usage: "install nginx ingress and cert-manager.",
+			Name:  "install-nginxingress, i-n",
+			Usage: "install nginx ingress.",
 		},
 		cli.BoolFlag{
-			Name:  "uninstall",
+			Name:  "install-cert-manager, i-c",
+			Usage: "install cert-manager.",
+		},
+		cli.BoolFlag{
+			Name:  "uninstall-nginxingress, ui-n",
+			Usage: "uninstall nginx ingress and cert-manager.",
+		},
+		cli.BoolFlag{
+			Name:  "uninstall-cert-manager, ui-c",
 			Usage: "uninstall nginx ingress and cert-manager.",
 		},
 	}
 	app.Action = func(c *cli.Context) error {
-		nginxNamespace := c.String("nginx-namespace")
-		nginxReleaseName := c.String("nginx-release-name")
-		nginxReplicaCount := c.String("replicacount")
-		nginxLoadBalancerIP := c.String("load-balancer-ip")
-		internal := c.Bool("internal")
-		nginxOtherOptions := c.String("nginx-other-options")
-		certManagerVersion := c.String("cert-manager-version")
-		certManagerNamespace := c.String("cert-manager-namespace")
-		certManagerReleaseName := c.String("cert-manager-release-name")
-		certManagerOtherOptions := c.String("cert-manager-other-options")
-		install := c.Bool("install")
-		uninstall := c.Bool("uninstall")
-		if install {
-			// ------------------------------------------------------------------------
-			// nginx ingress check namespace & create namespace
-			// ------------------------------------------------------------------------
-			commandStr := "kubectl get ns | grep " + nginxNamespace + " | wc -l | tr -d \"\\n\""
-			out, err := command.CombinedOutputStr(commandStr, true)
+		installNginxIngressFlag := c.Bool("install-nginxingress")
+		installCertManagerFlag := c.Bool("install-cert-manager")
+		uninstallNginxIngress := c.Bool("uninstall-nginxingress")
+		uninstallCertManager := c.Bool("uninstall-cert-manager")
+		if installNginxIngressFlag {
+			err := installNginxIngress(c)
 			if err != nil {
 				return err
 			}
-			if out == "0" {
-				_, err = command.CombinedOutput("kubectl", true, "create", "namespace", nginxNamespace)
-				if err != nil {
-					return err
-				}
-			}
-			// ------------------------------------------------------------------------
-			// Use Helm to deploy an NGINX ingress controller
-			// https://docs.microsoft.com/ja-jp/azure/aks/ingress-tls#create-an-ingress-controller
-			// ------------------------------------------------------------------------
-			commandStr = "helm list | grep " + nginxReleaseName + " | wc -l | tr -d \"\\n\""
-			out, err = command.CombinedOutputStr(commandStr, true)
+		}
+		if installCertManagerFlag {
+			err := installCertManager(c)
 			if err != nil {
 				return err
 			}
-			if out == "0" {
-				commandStr = "helm install stable/nginx-ingress"
-				commandStr += " --set controller.replicaCount=" + nginxReplicaCount
-				commandStr += " --set controller.nodeSelector.\"beta\\.kubernetes\\.io/os\"=linux"
-				commandStr += " --set defaultBackend.nodeSelector.\"beta\\.kubernetes\\.io/os\"=linux"
-				commandStr += " --set controller.service.externalTrafficPolicy=Local"
-				commandStr = commandStr + " --namespace " + nginxNamespace
-				commandStr = commandStr + " --name " + nginxReleaseName
-				if internal {
-					// commandStr += " --set controller.service.annotations.\"service.beta.kubernetes.io/azure-load-balancer-internal\"='\"true\"'"
-					commandStr += " --set-string controller.service.annotations.\"service\\.beta\\.kubernetes\\.io/azure-load-balancer-internal\"=true"
-				}
-				if nginxLoadBalancerIP != "" {
-					commandStr += " --set controller.service.loadBalancerIP=\"" + nginxLoadBalancerIP + "\""
-				}
-				// other options
-				commandStr = commandStr + " " + nginxOtherOptions
-
-				_, err = command.CombinedOutputStr(commandStr, true)
-				if err != nil {
-					return err
-				}
-			}
-			// ------------------------------------------------------------------------
-			// Use Helm to deploy an Cert Manager
-			// ------------------------------------------------------------------------
-			commandStr = "helm list | grep " + certManagerReleaseName + " | wc -l | tr -d \"\\n\""
-			out, err = command.CombinedOutputStr(commandStr, true)
-			if err != nil {
-				return err
-			}
-			if out == "0" {
-				// Install the CustomResourceDefinition resources separately
-				// see document.
-				// https://cert-manager.io/docs/installation/kubernetes/
-				commandStr = "kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-" + certManagerVersion + "/deploy/manifests/00-crds.yaml"
-				_, err = command.CombinedOutputStr(commandStr, true)
-				if err != nil {
-					return err
-				}
-
-				// cert manager check namespace & create namespace
-				commandStr = "kubectl get ns | grep " + certManagerNamespace + " | wc -l | tr -d \"\\n\""
-				out, err = command.CombinedOutputStr(commandStr, true)
-				if err != nil {
-					return err
-				}
-				if out == "0" {
-					_, err = command.CombinedOutput("kubectl", true, "create", "namespace", certManagerNamespace)
-					if err != nil {
-						return err
-					}
-				}
-				// Label the cert-manager namespace to disable resource validation
-				_, err = command.CombinedOutput("kubectl", true, "label", "namespace", "--overwrite", certManagerNamespace, "cert-manager.io/disable-validation=true")
-				if err != nil {
-					return err
-				}
-				// Add the Jetstack Helm repository
-				_, err = command.CombinedOutputStr("helm repo add jetstack https://charts.jetstack.io", true)
-				if err != nil {
-					return err
-				}
-				// Update your local Helm chart repository cache
-				_, err = command.CombinedOutputStr("helm repo update", true)
-				if err != nil {
-					return err
-				}
-				// Update your local Helm chart repository cache
-				_, err = command.CombinedOutputStr("helm install --name "+certManagerReleaseName+" --namespace "+certManagerNamespace+" --version v"+certManagerVersion+".0 "+certManagerOtherOptions+" jetstack/cert-manager", true)
-				if err != nil {
-					return err
-				}
-			}
+		}
+		if installNginxIngressFlag {
+			nginxNamespace := c.String("nginx-namespace")
 			fmt.Println("#------------------------------------------------------------------------")
 			fmt.Println("# Nginx Ingress associates ip address now.")
 			fmt.Println("# Please check this following command.")
@@ -222,8 +138,12 @@ func run(args []string) error {
 			fmt.Println("#------------------------------------------------------------------------")
 			fmt.Println("kubectl describe certificate {your secret name} --namespace " + nginxNamespace)
 		}
-		if uninstall {
+		if uninstallNginxIngress {
+			nginxReleaseName := c.String("nginx-release-name")
 			_, _ = command.CombinedOutputStr("helm delete --purge "+nginxReleaseName, true)
+		}
+		if uninstallCertManager {
+			certManagerReleaseName := c.String("cert-manager-release-name")
 			_, _ = command.CombinedOutputStr("helm delete --purge "+certManagerReleaseName, true)
 		}
 		return nil
@@ -231,6 +151,119 @@ func run(args []string) error {
 	return app.Run(args)
 }
 
+func installNginxIngress(c *cli.Context) error {
+	nginxNamespace := c.String("nginx-namespace")
+	nginxReleaseName := c.String("nginx-release-name")
+	nginxReplicaCount := c.String("replicacount")
+	nginxLoadBalancerIP := c.String("load-balancer-ip")
+	internal := c.Bool("internal")
+	nginxOtherOptions := c.String("nginx-other-options")
+	// ------------------------------------------------------------------------
+	// nginx ingress check namespace & create namespace
+	// ------------------------------------------------------------------------
+	commandStr := "kubectl get ns | grep " + nginxNamespace + " | wc -l | tr -d \"\\n\""
+	out, err := command.CombinedOutputStr(commandStr, true)
+	if err != nil {
+		return err
+	}
+	if out == "0" {
+		_, err = command.CombinedOutput("kubectl", true, "create", "namespace", nginxNamespace)
+		if err != nil {
+			return err
+		}
+	}
+	// ------------------------------------------------------------------------
+	// Use Helm to deploy an NGINX ingress controller
+	// https://docs.microsoft.com/ja-jp/azure/aks/ingress-tls#create-an-ingress-controller
+	// ------------------------------------------------------------------------
+	commandStr = "helm list | grep " + nginxReleaseName + " | wc -l | tr -d \"\\n\""
+	out, err = command.CombinedOutputStr(commandStr, true)
+	if err != nil {
+		return err
+	}
+	if out == "0" {
+		commandStr = "helm install stable/nginx-ingress"
+		commandStr += " --set controller.replicaCount=" + nginxReplicaCount
+		commandStr += " --set controller.nodeSelector.\"beta\\.kubernetes\\.io/os\"=linux"
+		commandStr += " --set defaultBackend.nodeSelector.\"beta\\.kubernetes\\.io/os\"=linux"
+		commandStr += " --set controller.service.externalTrafficPolicy=Local"
+		commandStr = commandStr + " --namespace " + nginxNamespace
+		commandStr = commandStr + " --name " + nginxReleaseName
+		if internal {
+			commandStr += " --set-string controller.service.annotations.\"service\\.beta\\.kubernetes\\.io/azure-load-balancer-internal\"=true"
+		}
+		if nginxLoadBalancerIP != "" {
+			commandStr += " --set controller.service.loadBalancerIP=\"" + nginxLoadBalancerIP + "\""
+		}
+		// other options
+		commandStr = commandStr + " " + nginxOtherOptions
+
+		_, err = command.CombinedOutputStr(commandStr, true)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func installCertManager(c *cli.Context) error {
+	certManagerVersion := c.String("cert-manager-version")
+	certManagerNamespace := c.String("cert-manager-namespace")
+	certManagerReleaseName := c.String("cert-manager-release-name")
+	certManagerOtherOptions := c.String("cert-manager-other-options")
+	// ------------------------------------------------------------------------
+	// Use Helm to deploy an Cert Manager
+	// ------------------------------------------------------------------------
+	commandStr := "helm list | grep " + certManagerReleaseName + " | wc -l | tr -d \"\\n\""
+	out, err := command.CombinedOutputStr(commandStr, true)
+	if err != nil {
+		return err
+	}
+	if out == "0" {
+		// Install the CustomResourceDefinition resources separately
+		// see document.
+		// https://cert-manager.io/docs/installation/kubernetes/
+		commandStr = "kubectl apply --validate=false -f https://raw.githubusercontent.com/jetstack/cert-manager/release-" + certManagerVersion + "/deploy/manifests/00-crds.yaml"
+		_, err = command.CombinedOutputStr(commandStr, true)
+		if err != nil {
+			return err
+		}
+
+		// cert manager check namespace & create namespace
+		commandStr = "kubectl get ns | grep " + certManagerNamespace + " | wc -l | tr -d \"\\n\""
+		out, err = command.CombinedOutputStr(commandStr, true)
+		if err != nil {
+			return err
+		}
+		if out == "0" {
+			_, err = command.CombinedOutput("kubectl", true, "create", "namespace", certManagerNamespace)
+			if err != nil {
+				return err
+			}
+		}
+		// Label the cert-manager namespace to disable resource validation
+		_, err = command.CombinedOutput("kubectl", true, "label", "namespace", "--overwrite", certManagerNamespace, "cert-manager.io/disable-validation=true")
+		if err != nil {
+			return err
+		}
+		// Add the Jetstack Helm repository
+		_, err = command.CombinedOutputStr("helm repo add jetstack https://charts.jetstack.io", true)
+		if err != nil {
+			return err
+		}
+		// Update your local Helm chart repository cache
+		_, err = command.CombinedOutputStr("helm repo update", true)
+		if err != nil {
+			return err
+		}
+		// Update your local Helm chart repository cache
+		_, err = command.CombinedOutputStr("helm install --name "+certManagerReleaseName+" --namespace "+certManagerNamespace+" --version v"+certManagerVersion+".0 "+certManagerOtherOptions+" jetstack/cert-manager", true)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 func main() {
 	_ = run(os.Args)
 }
