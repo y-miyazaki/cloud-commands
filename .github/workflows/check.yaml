@@ -10,6 +10,28 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+      - name: Set parameters
+        id: parameters
+        run: |
+          PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
+          echo "::set-output name=pr_number::${PR_NUMBER}"
+      - name: go test
+        run: |
+          echo $SSH_PRIVATE_KEY >> ./id_rsa
+          DOCKER_BUILDKIT=1 docker build -f docker/test/Dockerfile --secret id=ssh,src=./id_rsa --build-arg WORKDIR=/go/src/github.com/y-miyazaki/go-lambda -t golang-test:latest .
+          docker run --rm -v $PWD/coverage:/go/src/github.com/y-miyazaki/go-lambda/coverage --name golang-test golang-test:latest -t
+          rm ./id_rsa
+          - name: Check out code into the Go module directory
+          uses: actions/upload-artifact@master
+          with:
+            name: coverage
+            path: coverage
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v1
+        with:
+          golangci_lint_flags: "--config golangci.yaml"
+          level: error
+          fail_on_error: true
       - name: Action Shellcheck
         uses: reviewdog/action-shellcheck@v1
         with:
@@ -30,5 +52,8 @@ jobs:
           SLACK_TITLE: Failed check
           SLACK_MESSAGE: |
             This Github Actions workflow failed check.
+
+            Pull Request
+            https://github.com/${{github.repository}}/pull/${{ steps.parameters.outputs.pr_number }}
           SLACK_USERNAME: y-miyazaki
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
