@@ -24,7 +24,7 @@ jobs:
           docker pull ymiyazakixyz/golang-test:latest
           docker run --rm -v $PWD:/go/src/github.com/y-miyazaki/cloud-commands -v $PWD/id_rsa:/root/.ssh/id_rsa -w /go/src/github.com/y-miyazaki/cloud-commands --name golang-test ymiyazakixyz/golang-test:latest ./scripts/gotest.sh
           rm ./id_rsa
-      - name: "go: check out code into the Go module directory"
+      - name: "go: upload coverage"
         uses: actions/upload-artifact@master
         with:
           name: coverage
