@@ -17,7 +17,9 @@ jobs:
           reporter: github-pr-review # Change reporter.
           path: "./cmd" # Optional.
           pattern: "*" # Optional.
-          # exclude: "azacrdelete" # Optional.
+          exclude: "./files" # Optional.
+          fail_on_error: true
+          shellcheck_flags: "-e SC2002,SC2126,SC2140"
       - name: Slack Notification for failed Build.
         if: failure()
         uses: rtCamp/action-slack-notify@v2.0.2
