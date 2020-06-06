@@ -2,37 +2,38 @@
 name: Check Cloud-Commands
 on:
   pull_request:
-    # paths:
-    #   - "cmd/**"
+    paths:
+      - "cmd/**"
+      - "golang/**"
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: "code: check out code"
         uses: actions/checkout@v2
-      - name: Set parameters
+      - name: "parameters: set parameters"
         id: parameters
         run: |
           PR_NUMBER=$(echo $GITHUB_REF | awk 'BEGIN { FS = "/" } ; { print $3 }')
           echo "::set-output name=pr_number::${PR_NUMBER}"
-      - name: go test
+      - name: "go: test"
         run: |
           echo $SSH_PRIVATE_KEY >> ./id_rsa
           DOCKER_BUILDKIT=1 docker build -f docker/test/Dockerfile --secret id=ssh,src=./id_rsa --build-arg WORKDIR=/go/src/github.com/y-miyazaki/cloud-commands -t golang-test:latest .
           docker run --rm -v $PWD/coverage:/go/src/github.com/y-miyazaki/cloud-commands/coverage --name golang-test golang-test:latest -t
           rm ./id_rsa
-      - name: Check out code into the Go module directory
+      - name: "go: check out code into the Go module directory"
         uses: actions/upload-artifact@master
         with:
           name: coverage
           path: coverage
-      - name: golangci-lint
+      - name: "go: golangci-lint for lint"
         uses: reviewdog/action-golangci-lint@v1
         with:
           golangci_lint_flags: "--config golangci.yaml"
           level: error
           fail_on_error: true
-      - name: Action Shellcheck
+      - name: "shell: shellcheck for lint"
         uses: reviewdog/action-shellcheck@v1
         with:
           github_token: ${{ secrets.github_token }}
@@ -42,7 +43,7 @@ jobs:
           exclude: "./files" # Optional.
           fail_on_error: true
           shellcheck_flags: "-e SC2002,SC2126,SC2140"
-      - name: Slack Notification for failed Build.
+      - name: "slack: notification for failed build."
         if: failure()
         uses: rtCamp/action-slack-notify@v2.0.2
         env:
