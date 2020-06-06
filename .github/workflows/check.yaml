@@ -3,6 +3,7 @@ name: Check Cloud-Commands
 on:
   pull_request:
     paths:
+      - ".github/workflows/**"
       - "cmd/**"
       - "golang/**"
 jobs:
@@ -19,10 +20,11 @@ jobs:
       - name: "go: test"
         run: |
           echo $SSH_PRIVATE_KEY >> ./id_rsa
-          DOCKER_BUILDKIT=1 docker build -f docker/test/Dockerfile --secret id=ssh,src=./id_rsa --build-arg WORKDIR=/go/src/github.com/y-miyazaki/cloud-commands -t golang-test:latest .
-          docker run --rm -v $PWD/coverage:/go/src/github.com/y-miyazaki/cloud-commands/coverage --name golang-test golang-test:latest -t
+          chmod +x scripts/*
+          docker pull ymiyazakixyz/golang-test:latest
+          docker run --rm -v $PWD:/go/src/github.com/y-miyazaki/cloud-commands -v $PWD/id_rsa:/root/.ssh/id_rsa -w /go/src/github.com/y-miyazaki/cloud-commands --name golang-test ymiyazakixyz/golang-test:latest ./scripts/gotest.sh
           rm ./id_rsa
-      - name: "go: check out code into the Go module directory"
+      - name: "go: upload coverage"
         uses: actions/upload-artifact@master
         with:
           name: coverage
