@@ -1,5 +1,5 @@
 # https://help.github.com/ja/actions/reference/workflow-syntax-for-github-actions
-name: Release Cloud-Commands
+name: Release cloud-commands
 on:
   push:
     tags:
