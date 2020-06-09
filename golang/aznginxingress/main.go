@@ -52,7 +52,7 @@ func run(args []string) error {
 			Usage: "If set, add the option when installing nginx ingress and allocate only fixed IP.",
 		},
 		cli.BoolFlag{
-			Name:  "internal, i",
+			Name:  "internal",
 			Usage: "If set, add the option when installing nginx ingress and allocate only the internal IP.",
 		},
 		cli.StringFlag{
