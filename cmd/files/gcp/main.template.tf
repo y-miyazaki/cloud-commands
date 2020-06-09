@@ -6,11 +6,11 @@
 # terraform state
 #--------------------------------------------------------------
 terraform {
-  required_version = ">= 0.12"
+  required_version = "##REQUIRED_VERSION##"
   backend "gcs" {
     credentials = "##GOOGLE_CLOUD_KEYFILE_JSON##"
-    bucket      = "##BUCKET##"
-    prefix      = "##PREFIX##"
+    bucket      = "##GCS_BUCKET##"
+    prefix      = "##GCS_PREFIX##"
   }
 }
 

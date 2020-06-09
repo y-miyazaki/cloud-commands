@@ -7,12 +7,12 @@
 # terraform state
 #--------------------------------------------------------------
 terraform {
-  required_version = ">= 0.12"
+  required_version = "##REQUIRED_VERSION##"
   backend "s3" {
-    bucket  = "##BUCKET##"
-    key     = "##KEY##"
+    bucket  = "##S3_BUCKET##"
+    key     = "##S3_KEY##"
     profile = "default"    # fix for environment
-    region  = "##REGION##" # fix for environment
+    region  = "##S3_REGION##" # fix for environment
   }
 }
 

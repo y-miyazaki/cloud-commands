@@ -1,0 +1,11 @@
+{
+  "terraform": {
+    "required_version": ">=0.12",
+    "backend_s3": {
+      "key": "terraform.tfstate"
+    }
+  },
+  "aws": {
+    "version": ">=2.65.0"
+  }
+}

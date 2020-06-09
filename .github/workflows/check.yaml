@@ -42,7 +42,7 @@ jobs:
           reporter: github-pr-review # Change reporter.
           path: "./cmd" # Optional.
           pattern: "*" # Optional.
-          exclude: "./files" # Optional.
+          exclude: "./cmd/files/*" # Optional.
           fail_on_error: true
           shellcheck_flags: "-e SC2002,SC2126,SC2140"
       - name: "slack: notification for failed build."

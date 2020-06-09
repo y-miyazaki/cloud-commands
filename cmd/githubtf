@@ -32,15 +32,30 @@ EOF
     exit 1
 }
 
+# variables
 # script directory
 SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
+# provider.json
+PROVIDER_FILE=
+BASE_PROVIDER_FILE="${SCRIPT_DIR}"/files/github/provider.json
+USER_PROVIDER_FILE=provider.json
 
 # arguments
 COMMAND=$*
-
 if [ $# -eq 0 ]; then
     usage
 fi
+
+# get provider.json
+if [ -e "${USER_PROVIDER_FILE}" ]; then
+    PROVIDER_FILE="${USER_PROVIDER_FILE}"
+elif [ -e "${BASE_PROVIDER_FILE}" ]; then
+    PROVIDER_FILE="${BASE_PROVIDER_FILE}"
+else
+    echo "can't find provider.json..."
+    exit 1
+fi
+REQUIRED_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .terraform.required_version)
 
 # check environment
 if [ -z "${ENV}" ]; then
@@ -64,9 +79,12 @@ fi
 # export TF_LOG_PATH='./terraform.log'
 rm -f terraform.log crash.log main_init.tf
 if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
-    cat "${SCRIPT_DIR}"/files/github/main.template.tf | sed -e "s/##GITHUB_TOKEN##/${GITHUB_TOKEN}/g" > ./main_init.tf
+    cp -p "${SCRIPT_DIR}"/files/github/main.template.tf ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##REQUIRED_VERSION##@${REQUIRED_VERSION}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##GITHUB_TOKEN##@${GITHUB_TOKEN}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##GITHUB_INDIVIDUAL##@${GITHUB_INDIVIDUAL}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##GITHUB_ORGANIZATION##@${GITHUB_ORGANIZATION}@g" ./main_init.tf
 fi
 terraform init
-terraform "${COMMAND}" -var-file=terraform."${ENV}".tfvars
+# shellcheck disable=SC2086
+terraform ${COMMAND} -var-file=terraform."${ENV}".tfvars

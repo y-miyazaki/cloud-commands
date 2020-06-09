@@ -1,0 +1,14 @@
+{
+  "terraform": {
+    "required_version": ">=0.12",
+    "backend_azurerm": {
+      "key": "terraform-tfstate"
+    }
+  },
+  "azurerm": {
+    "version": ">=2.13.0"
+  },
+  "azuread": {
+    "version": ">=0.10.0"
+  }
+}
