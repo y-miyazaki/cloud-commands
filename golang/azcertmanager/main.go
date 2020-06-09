@@ -53,7 +53,7 @@ func run(args []string) error {
 		},
 		cli.BoolFlag{
 			Name:  "uninstall, u",
-			Usage: "uninstall nginx ingress and cert-manager.",
+			Usage: "uninstall cert-manager.",
 		},
 	}
 	app.Action = func(c *cli.Context) error {

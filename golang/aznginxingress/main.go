@@ -11,7 +11,7 @@ import (
 func run(args []string) error {
 	app := cli.NewApp()
 	app.Name = "aznginxingress"
-	app.Usage = `This command installs nginx ingress and cert-manager.
+	app.Usage = `This command installs nginx ingress.
    This command requires "kubectl" and "helm" commands.
    Also, since you actually install to the Cluster, you need to have permission to deploy to the Cluster.
 
