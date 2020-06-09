@@ -1,0 +1,14 @@
+{
+  "terraform": {
+    "required_version": ">=0.12",
+    "backend_gcs": {
+      "prefix": "terraform.tfstate"
+    }
+  },
+  "google": {
+    "version": ">=3.25.0"
+  },
+  "google_beta": {
+    "version": ">=3.25.0"
+  }
+}

@@ -36,33 +36,33 @@ EOF
     exit 1
 }
 
+# variables
 # script directory
 SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
+# provider.json
+PROVIDER_FILE=
+BASE_PROVIDER_FILE="${SCRIPT_DIR}"/files/azure/provider.json
+USER_PROVIDER_FILE=provider.json
 
 # arguments
 COMMAND=$*
-
 if [ $# -eq 0 ]; then
     usage
 fi
-# terraform-state key
-if [ -e "terraform-state.key" ]; then
-    KEY=$(cat terraform-state.key | sed -e "s/[\r\n]\+//g")
+
+# get provider.json
+if [ -e "${USER_PROVIDER_FILE}" ]; then
+    PROVIDER_FILE="${USER_PROVIDER_FILE}"
+elif [ -e "${BASE_PROVIDER_FILE}" ]; then
+    PROVIDER_FILE="${BASE_PROVIDER_FILE}"
 else
-    KEY=terraform-tfstate
+    echo "can't find provider.json..."
+    exit 1
 fi
-# provider azurerm version
-if [ -e "provider-azurerm.version" ]; then
-    AZURERM_VERSION=$(cat provider-azurerm.version | sed -e "s/[\r\n]\+//g")
-else
-    AZURERM_VERSION="~>2.0.0"
-fi
-# provider azuread version
-if [ -e "provider-azuread.version" ]; then
-    AZURERD_VERSION=$(cat provider-azuread.version | sed -e "s/[\r\n]\+//g")
-else
-    AZURERD_VERSION="~>0.7.0"
-fi
+REQUIRED_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .terraform.required_version)
+BACKEND_AZURERM_KEY=$(cat "${PROVIDER_FILE}" | jq -r .terraform.backend_azurerm.key)
+AZURERM_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .azurerm.version)
+AZURERD_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .azuread.version)
 
 # check environment
 if [ -z "${ENV}" ]; then
@@ -98,11 +98,13 @@ fi
 # export TF_LOG_PATH='./terraform.log'
 rm -f terraform.log crash.log main_init.tf
 if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
-    cat "${SCRIPT_DIR}"/files/azure/main.template.tf | sed -e "s/##STORAGE_ACCOUNT_NAME##/${STORAGE_ACCOUNT_NAME}/g" > ./main_init.tf
-    cat ./main_init.tf | sed -i -e "s@##CONTAINER_NAME##@${CONTAINER_NAME}@g" ./main_init.tf
-    cat ./main_init.tf | sed -i -e "s@##KEY##@${KEY}@g" ./main_init.tf
+    cp -p "${SCRIPT_DIR}"/files/azure/main.template.tf ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##REQUIRED_VERSION##@${REQUIRED_VERSION}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##AZURERM_STORAGE_ACCOUNT_NAME##@${STORAGE_ACCOUNT_NAME}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##AZURERM_CONTAINER_NAME##@${CONTAINER_NAME}@g" ./main_init.tf
+    cat ./main_init.tf | sed -i -e "s@##AZURERM_KEY##@${BACKEND_AZURERM_KEY}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##AZURERM_VERSION##@${AZURERM_VERSION}@g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s@##AZURERD_VERSION##@${AZURERD_VERSION}@g" ./main_init.tf
 fi
 terraform init
-terraform "${COMMAND}" -var-file=terraform."${ENV}".tfvars
+terraform ${COMMAND} -var-file=terraform."${ENV}".tfvars

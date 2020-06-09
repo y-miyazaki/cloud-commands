@@ -6,11 +6,11 @@
 # terraform state
 #--------------------------------------------------------------
 terraform {
-  required_version = ">= 0.12"
+  required_version = "##REQUIRED_VERSION##"
   backend "azurerm" {
-    storage_account_name = "##STORAGE_ACCOUNT_NAME##"
-    container_name = "##CONTAINER_NAME##"
-    key = "##KEY##"
+    storage_account_name = "##AZURERM_STORAGE_ACCOUNT_NAME##"
+    container_name = "##AZURERM_CONTAINER_NAME##"
+    key = "##AZURERM_KEY##"
   }
 }
 
