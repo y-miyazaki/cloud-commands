@@ -97,4 +97,5 @@ if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
 fi
 
 terraform init
+# shellcheck disable=SC2086
 terraform ${COMMAND} -var-file=terraform."${ENV}".tfvars

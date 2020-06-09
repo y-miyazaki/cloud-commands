@@ -63,20 +63,6 @@ BACKEND_GCS_PREFIX=$(cat "${PROVIDER_FILE}" | jq -r .terraform.backend_gcs.prefi
 GOOGLE_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .google.version)
 GOOGLE_BETA_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .google_beta.version)
 
-# get provider.json
-if [ -e "${USER_PROVIDER_FILE}" ]; then
-    PROVIDER_FILE="${USER_PROVIDER_FILE}"
-elif [ -e "${BASE_PROVIDER_FILE}" ]; then
-    PROVIDER_FILE="${BASE_PROVIDER_FILE}"
-else
-    echo "can't find provider.json..."
-    exit 1
-fi
-REQUIRED_VERSION=$(cat "${PROVIDER_FILE}" | jq .terraform.required_version)
-VERSION=$(cat "${PROVIDER_FILE}" | jq .aws.version)
-S3_KEY=$(cat "${PROVIDER_FILE}" | jq .terraform.backend_s3.key)
-
-
 # check environment
 if [ -z "${ENV}" ]; then
     usage ENV
@@ -116,4 +102,5 @@ if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
     cat ./main_init.tf | sed -i -e "s@##GOOGLE_BETA_VERSION##@${GOOGLE_BETA_VERSION}@g" ./main_init.tf
 fi
 terraform init
+# shellcheck disable=SC2086
 terraform ${COMMAND} -var-file=terraform."${ENV}".tfvars
