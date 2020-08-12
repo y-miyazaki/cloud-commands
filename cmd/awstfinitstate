@@ -65,6 +65,7 @@ if [ $IS_BUCKET_AUTO_HASH -eq 1 ]; then
 fi
 
 # AWS ID取得
+# shellcheck disable=SC2086
 AWS_ID=$( \
     aws sts get-caller-identity \
     --query 'Account' \
@@ -79,14 +80,17 @@ fi
 # # バケットの作成
 # # リージョンを指定しないとエラーになるので明示的に指定している
 # # https://dev.classmethod.jp/cloud/aws/jaws-ug-cli-1/
+# shellcheck disable=SC2086
 aws s3api create-bucket ${PROFILE} --bucket "${BUCKET}" --create-bucket-configuration LocationConstraint="${REGION}" && :
 
 # # バケットのバージョニング設定
 # # 何かやらかしたときに、復元できるようにしておく
+# shellcheck disable=SC2086
 aws s3api put-bucket-versioning ${PROFILE} --bucket "${BUCKET}" --versioning-configuration Status=Enabled
 
 # # バケットのデフォルト暗号化設定
 # # http://tech.withsin.net/2017/12/05/s3-bucket-encryption/
+# shellcheck disable=SC2086
 aws s3api put-bucket-encryption ${PROFILE} --bucket "${BUCKET}" --server-side-encryption-configuration '{
   "Rules": [
     {
@@ -97,12 +101,16 @@ aws s3api put-bucket-encryption ${PROFILE} --bucket "${BUCKET}" --server-side-en
   ]
 }'
 
+# shellcheck disable=SC2086
 aws s3api get-bucket-location ${PROFILE} --bucket "${BUCKET}"
+# shellcheck disable=SC2086
 aws s3api get-bucket-versioning ${PROFILE} --bucket "${BUCKET}"
+# shellcheck disable=SC2086
 aws s3api get-bucket-encryption ${PROFILE} --bucket "${BUCKET}"
 
 # sed for account id and bucket.
 cat "${SCRIPT_DIR}"/files/aws/terraform_state_policy.template.json | sed -e "s/##AWS_ID##/${AWS_ID}/g" > "${SCRIPT_DIR}"/files/aws/terraform_state_policy.json
 cat "${SCRIPT_DIR}"/files/aws/terraform_state_policy.json | sed -i -e "s/##BUCKET##/${BUCKET}/g" "${SCRIPT_DIR}"/files/aws/terraform_state_policy.json
+# shellcheck disable=SC2086
 aws s3api put-bucket-policy ${PROFILE} --bucket "${BUCKET}" --policy file://"${SCRIPT_DIR}"/files/aws/terraform_state_policy.json
 rm -f "${SCRIPT_DIR}"/files/aws/terraform_state_policy.json
