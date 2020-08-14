@@ -6,6 +6,11 @@
 #--------------------------------------------------------------
 set -e
 
+#------------------------------------------------------------------------
+# variables
+#------------------------------------------------------------------------
+# script directory
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 # init
 IS_BUCKET_AUTO_HASH=0
 
@@ -47,8 +52,6 @@ do
     esac
 done
 
-# script directory
-SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 # check
 if [ -z "${BUCKET}" ]; then
     usage
