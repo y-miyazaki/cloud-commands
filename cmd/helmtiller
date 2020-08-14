@@ -18,7 +18,9 @@ SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 function usage () {
     RED='\033[0;31m'
     NC='\033[0m' # No Color
-    printf "${RED}${1}${NC}\n"
+    if [ -n "${1}" ]; then
+        printf "%b%s%b\n" "${RED}" "${1}" "${NC}"
+    fi
     cat <<EOF
 This command installs helm tiller.
 
@@ -44,7 +46,8 @@ fi
 # https://v3.helm.sh/docs/faq/
 #------------------------------------------------------------------------
 VERSION=$(helm version)
-MAJOR_VERSION=$(echo $VERSION | sed -e "s@.*Version:\"v\([0-9]\+\).*\}@\1@g")
+# shellcheck disable=SC2001
+MAJOR_VERSION=$(echo "${VERSION}" | sed -e "s@.*Version:\"v\([0-9]\+\).*\}@\1@g")
 if [ "${MAJOR_VERSION}" -ge 3 ]; then
     usage "you don't need to install tiller since helm3."
 fi
