@@ -12,7 +12,7 @@ function usage () {
     RED='\033[0;31m'
     NC='\033[0m' # No Color
     if [ -n "${1}" ]; then
-        printf "${RED}${1}${NC}\n"
+        printf "%b%s%b\n" "${RED}" "${1}" "${NC}"
     fi
     cat <<EOF
 $(basename "${0}") is a tool for create azure service principal
