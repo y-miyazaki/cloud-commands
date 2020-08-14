@@ -9,6 +9,11 @@ set -e
 
 # usage function
 function usage () {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    if [ -n "${1}" ]; then
+        printf "%b%s%b\n" "${RED}" "${1}" "${NC}"
+    fi
     cat <<EOF
 $(basename "${0}") is a tool for create azure service principal
 
@@ -36,6 +41,11 @@ do
         \? ) usage ;;
     esac
 done
+
+# check az command
+if [ -z "$(command -v az)" ]; then
+    usage "This command need to install \"az\"."
+fi
 
 if [ -z "${SERVICE_PRINCIPAL_NAME}" ]; then
     usage

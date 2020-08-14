@@ -6,12 +6,21 @@
 #--------------------------------------------------------------
 set -e
 
+#------------------------------------------------------------------------
+# variables
+#------------------------------------------------------------------------
+# script directory
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
 # init
 IS_BUCKET_AUTO_HASH=0
 
 # usage function
 function usage () {
-    echo "${1}"
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    if [ -n "${1}" ]; then
+        printf "%b%s%b\n" "${RED}" "${1}" "${NC}"
+    fi
     cat <<EOF
 
 This command creates a S3 Bucket for Terraform State.
@@ -44,18 +53,17 @@ do
     esac
 done
 
-# script directory
-SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
+# check aws command
+if [ -z "$(command -v aws)" ]; then
+    usage "This command need to install \"aws\"."
+fi
+
 # check
 if [ -z "${BUCKET}" ]; then
     usage
 fi
 if [ -z "${REGION}" ]; then
     usage
-fi
-# check aws command
-if [ -z "$(command -v aws)" ]; then
-    usage "This command need to \"aws\"."
 fi
 
 # option: add hash suffix to bucket name.

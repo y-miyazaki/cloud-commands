@@ -11,10 +11,22 @@
 #--------------------------------------------------------------
 set -e
 
+#------------------------------------------------------------------------
+# variables
+#------------------------------------------------------------------------
+# script directory
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
+# provider.json
+PROVIDER_FILE=
+BASE_PROVIDER_FILE="${SCRIPT_DIR}"/files/aws/provider.json
+USER_PROVIDER_FILE=provider.json
+
 # usage function
 function usage () {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
     if [ -n "${1}" ]; then
-        echo "error: $(basename "${0}") needs $1 environment parameter."
+        printf "%b%s%b\n" "${RED}" "${1}" "${NC}"
     fi
     cat <<EOF
 
@@ -32,13 +44,14 @@ EOF
     exit 1
 }
 
-# variables
-# script directory
-SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
-# provider.json
-PROVIDER_FILE=
-BASE_PROVIDER_FILE="${SCRIPT_DIR}"/files/aws/provider.json
-USER_PROVIDER_FILE=provider.json
+# check jq command
+if [ -z "$(command -v jq)" ]; then
+    usage "This command need to install \"jq\"."
+fi
+# check terraform command
+if [ -z "$(command -v terraform)" ]; then
+    usage "This command need to install \"terraform\"."
+fi
 
 # terraform command
 COMMAND=$*
@@ -71,16 +84,16 @@ fi
 
 # check environment
 if [ -z "${ENV}" ]; then
-    usage ENV
+    usage "This command need to set \"ENV\" environment parameter."
 fi
 if [ -z "${BUCKET}" ]; then
-    usage BUCKET
+    usage "This command need to set \"BUCKET\" environment parameter."
 fi
 if [ -z "${AWS_DEFAULT_REGION}" ]; then
-    usage AWS_DEFAULT_REGION
+    usage "This command need to set \"AWS_DEFAULT_REGION\" environment parameter."
 fi
 if [ -z "${IS_GENERATE_PROVIDER}" ]; then
-    usage IS_GENERATE_PROVIDER
+    usage "This command need to set \"IS_GENERATE_PROVIDER\" environment parameter."
 fi
 
 # export TF_LOG=1
