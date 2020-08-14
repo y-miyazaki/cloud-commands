@@ -1,13 +1,41 @@
 #!/bin/bash
 #------------------------------------------------------------------------
-# helm init for tiller.
+# install helm tiller.
 # see tiller
 # https://helm.sh/docs/glossary/
 #------------------------------------------------------------------------
 set -e
 
+#------------------------------------------------------------------------
+# variables
+#------------------------------------------------------------------------
 # script directory
 SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
+
+# usage function
+function usage () {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    printf "${RED}${1}${NC}\n"
+    cat <<EOF
+This command installs helm tiller.
+
+Usage:
+    $(basename "${0}")
+Options:
+    no options
+EOF
+    exit 1
+}
+
+# check kubectl command
+if [ -z "$(command -v kubectl)" ]; then
+    usage "***This command need to install \"kubectl\".***"
+fi
+# check helm command
+if [ -z "$(command -v helm)" ]; then
+    usage "***This command need to install \"helm\".***"
+fi
 
 IS_TILLER_INSTALL=$(kubectl get serviceaccount -n kube-system | grep tiller | wc -l | tr -d '\n')
 if [ "${IS_TILLER_INSTALL}" -eq "0" ]; then

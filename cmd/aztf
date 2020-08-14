@@ -15,10 +15,22 @@
 #--------------------------------------------------------------
 set -e
 
+#------------------------------------------------------------------------
+# variables
+#------------------------------------------------------------------------
+# script directory
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
+# provider.json
+PROVIDER_FILE=
+BASE_PROVIDER_FILE="${SCRIPT_DIR}"/files/azure/provider.json
+USER_PROVIDER_FILE=provider.json
+
 # usage function
 function usage () {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
     if [ -n "${1}" ]; then
-        echo "error: $(basename "${0}") needs $1 environment parameter."
+        printf "${RED}${1}${NC}\n"
     fi
     cat <<EOF
 
@@ -36,13 +48,14 @@ EOF
     exit 1
 }
 
-# variables
-# script directory
-SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
-# provider.json
-PROVIDER_FILE=
-BASE_PROVIDER_FILE="${SCRIPT_DIR}"/files/azure/provider.json
-USER_PROVIDER_FILE=provider.json
+# check jq command
+if [ -z "$(command -v jq)" ]; then
+    usage "This command need to install \"jq\"."
+fi
+# check terraform command
+if [ -z "$(command -v terraform)" ]; then
+    usage "This command need to install \"terraform\"."
+fi
 
 # arguments
 COMMAND=$*
@@ -66,32 +79,31 @@ AZURERD_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .azuread.version)
 
 # check environment
 if [ -z "${ENV}" ]; then
-    usage ENV
-    exit 1
+    usage "This command need to set \"ENV\" environment parameter."
 fi
 if [ -z "${ARM_CLIENT_ID}" ]; then
-    usage ARM_CLIENT_ID
+    usage "This command need to set \"ARM_CLIENT_ID\" environment parameter."
 fi
 if [ -z "${ARM_CLIENT_SECRET}" ]; then
-    usage ARM_CLIENT_SECRET
+    usage "This command need to set \"ARM_CLIENT_SECRET\" environment parameter."
 fi
 if [ -z "${ARM_TENANT_ID}" ]; then
-    usage ARM_TENANT_ID
+    usage "This command need to set \"ARM_TENANT_ID\" environment parameter."
 fi
 if [ -z "${ARM_SUBSCRIPTION_ID}" ]; then
-    usage ARM_SUBSCRIPTION_ID
+    usage "This command need to set \"ARM_SUBSCRIPTION_ID\" environment parameter."
 fi
 if [ -z "${STORAGE_ACCOUNT_NAME}" ]; then
-    usage STORAGE_ACCOUNT_NAME
+    usage "This command need to set \"STORAGE_ACCOUNT_NAME\" environment parameter."
 fi
 if [ -z "${RESOURCE_GROUP_NAME}" ]; then
-    usage RESOURCE_GROUP_NAME
+    usage "This command need to set \"RESOURCE_GROUP_NAME\" environment parameter."
 fi
 if [ -z "${CONTAINER_NAME}" ]; then
-    usage CONTAINER_NAME
+    usage "This command need to set \"CONTAINER_NAME\" environment parameter."
 fi
 if [ -z "${IS_GENERATE_PROVIDER}" ]; then
-    usage IS_GENERATE_PROVIDER
+    usage "This command need to set \"IS_GENERATE_PROVIDER\" environment parameter."
 fi
 
 # export TF_LOG=1

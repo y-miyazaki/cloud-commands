@@ -46,7 +46,7 @@ if [ -z "${SAN}" ]; then
 fi
 # check openssl command
 if [ -z "$(command -v openssl)" ]; then
-    usage "This command need to \"openssl\"."
+    usage "This command need to install \"openssl\"."
 fi
 
 # make directory

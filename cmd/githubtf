@@ -11,10 +11,22 @@
 #--------------------------------------------------------------
 set -e
 
+#------------------------------------------------------------------------
+# variables
+#------------------------------------------------------------------------
+# script directory
+SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
+# provider.json
+PROVIDER_FILE=
+BASE_PROVIDER_FILE="${SCRIPT_DIR}"/files/github/provider.json
+USER_PROVIDER_FILE=provider.json
+
 # usage function
 function usage () {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
     if [ -n "${1}" ]; then
-        echo "error: $(basename "${0}") needs $1 environment parameter."
+        printf "${RED}${1}${NC}\n"
     fi
     cat <<EOF
 
@@ -32,13 +44,14 @@ EOF
     exit 1
 }
 
-# variables
-# script directory
-SCRIPT_DIR=$(cd "$(dirname "${0}")"; pwd)
-# provider.json
-PROVIDER_FILE=
-BASE_PROVIDER_FILE="${SCRIPT_DIR}"/files/github/provider.json
-USER_PROVIDER_FILE=provider.json
+# check jq command
+if [ -z "$(command -v jq)" ]; then
+    usage "This command need to install \"jq\"."
+fi
+# check terraform command
+if [ -z "$(command -v terraform)" ]; then
+    usage "This command need to install \"terraform\"."
+fi
 
 # arguments
 COMMAND=$*
@@ -59,17 +72,16 @@ REQUIRED_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .terraform.required_version)
 
 # check environment
 if [ -z "${ENV}" ]; then
-    usage ENV
-    exit 1
+    usage "This command need to set \"ENV\" environment parameter."
 fi
 if [ -z "${GITHUB_TOKEN}" ]; then
-    usage GITHUB_TOKEN
+    usage "This command need to set \"GITHUB_TOKEN\" environment parameter."
 fi
 if [ -z "${GITHUB_INDIVIDUAL}" ]; then
-    usage GITHUB_INDIVIDUAL
+    usage "This command need to set \"GITHUB_INDIVIDUAL\" environment parameter."
 fi
 if [ "${GITHUB_INDIVIDUAL}" = "false" ] && [ -z "${GITHUB_ORGANIZATION}" ]; then
-    usage GITHUB_ORGANIZATION
+    usage "This command need to set \"GITHUB_ORGANIZATION\" environment parameter."
 elif [ "${GITHUB_INDIVIDUAL}" = "true" ]; then
     GITHUB_ORGANIZATION=""
 else
