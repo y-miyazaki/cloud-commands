@@ -1,7 +1,7 @@
 #!/bin/bash
 #------------------------------------------------------------------------
 # install helm tiller.
-# note: remote tiller since helm3, so if you action helm3 command, this command can't action.
+# note: remove tiller since helm3, so if you action helm3 command, this command can't action.
 # https://v3.helm.sh/docs/faq/
 # see tiller
 # https://helm.sh/docs/glossary/
@@ -42,7 +42,7 @@ if [ -z "$(command -v helm)" ]; then
 fi
 
 #------------------------------------------------------------------------
-# note: remote tiller since helm3, so if you action helm3 command, this command can't action.
+# note: remove tiller since helm3, so if you action helm3 command, this command can't action.
 # https://v3.helm.sh/docs/faq/
 #------------------------------------------------------------------------
 VERSION=$(helm version)
