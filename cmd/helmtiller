@@ -1,6 +1,8 @@
 #!/bin/bash
 #------------------------------------------------------------------------
 # install helm tiller.
+# note: remote tiller since helm3, so if you action helm3 command, this command can't action.
+# https://v3.helm.sh/docs/faq/
 # see tiller
 # https://helm.sh/docs/glossary/
 #------------------------------------------------------------------------
@@ -30,11 +32,21 @@ EOF
 
 # check kubectl command
 if [ -z "$(command -v kubectl)" ]; then
-    usage "***This command need to install \"kubectl\".***"
+    usage "This command need to install \"kubectl\"."
 fi
 # check helm command
 if [ -z "$(command -v helm)" ]; then
-    usage "***This command need to install \"helm\".***"
+    usage "This command need to install \"helm\"."
+fi
+
+#------------------------------------------------------------------------
+# note: remote tiller since helm3, so if you action helm3 command, this command can't action.
+# https://v3.helm.sh/docs/faq/
+#------------------------------------------------------------------------
+VERSION=$(helm version)
+MAJOR_VERSION=$(echo $VERSION | sed -e "s@.*Version:\"v\([0-9]\+\).*\}@\1@g")
+if [ "${MAJOR_VERSION}" -ge 3 ]; then
+    usage "you don't need to install tiller since helm3."
 fi
 
 IS_TILLER_INSTALL=$(kubectl get serviceaccount -n kube-system | grep tiller | wc -l | tr -d '\n')
