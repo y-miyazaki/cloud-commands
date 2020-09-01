@@ -1,0 +1,208 @@
+#!/bin/bash
+#------------------------------------------------------------------------
+# Script for initial setting of EKS.
+# Cluster Autoscaler, IP restriction setting, etc.
+#
+# - Cluster Autoscaler node group considerations
+#   https://docs.aws.amazon.com/ja_jp/eks/latest/userguide/horizontal-pod-autoscaler.html
+# - Amazon EKS cluster endpoint access control
+#   https://docs.aws.amazon.com/ja_jp/eks/latest/userguide/cluster-endpoint.html
+#------------------------------------------------------------------------
+
+#------------------------------------------------------------------------
+# variables
+#------------------------------------------------------------------------
+# https://github.com/kubernetes/autoscaler/releases
+PUBLIC_ACCESS_CIDRS=
+# Cluster Autoscaler version
+CLUSTER_AUTOSCALER_VERSION="1.16.6"
+# Cluster region
+CLUSTER_REGION=
+# Cluster name
+CLUSTER_NAME=
+# ALB flag
+ALB_USE=0
+ALB_VERSION="1.1.8"
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# usage function
+function usage () {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    if [ -n "${1}" ]; then
+        printf "%b%s%b\n" "${RED}" "${1}" "${NC}"
+    fi
+    cat <<EOF
+
+Script for initial setting of EKS.
+Cluster Autoscaler, IP restriction setting ALB Ingress controller, etc.
+
+Usage:
+    $(basename "${0}") [<options>]
+    $(basename "${0}") -r ap-northeast-1 -n test-cluster
+    # use ALB Ingress contoller
+    $(basename "${0}") -r ap-northeast-1 -n test-cluster -l -a arn:aws:iam::xxxxxxxxxxx:role/yyyyyyyyyy
+
+Options:
+    -a {alb role arn}             This option is also required when using ALB (-l option). Specify the rolearn of alb.
+    -l                             If set, add application load balancer.
+    -n {cluter name}               Specify the name of the Cluster.
+    -p {cidr blocks}               If set, API server filter cidr blocks.
+    -r {cluter region}             Specify the region of the Cluster.
+    -v {cluter autoscaler version} If set, the Cluster Autoscaler will be set to the specified version.
+EOF
+    exit 1
+}
+
+while getopts a:hln:p:r:v: opt
+do
+    case $opt in
+        a ) ALB_ROLE_ARN=$OPTARG ;;
+        l ) ALB_USE=1 ;;
+        n ) CLUSTER_NAME=$OPTARG ;;
+        p ) PUBLIC_ACCESS_CIDRS=$OPTARG ;;
+        r ) CLUSTER_REGION=$OPTARG ;;
+        v ) CLUSTER_AUTOSCALER_VERSION=$OPTARG ;;
+        h ) usage ;;
+        \? ) usage ;;
+    esac
+done
+
+# check kubectl command
+if [ -z "$(command -v kubectl)" ]; then
+    usage "This command need to install \"kubectl\"."
+fi
+# check aws command
+if [ -z "$(command -v aws)" ]; then
+    usage "This command need to install \"aws\"."
+fi
+
+#------------------------------------------------------------------------
+# init kubeconfig.
+#------------------------------------------------------------------------
+if [ -z "${CLUSTER_REGION}" ]; then
+    usage "need to add -r option."
+fi
+if [ -z "${CLUSTER_NAME}" ]; then
+    usage "need to add -n option."
+fi
+echo "update kubeconfig..."
+
+if ! aws eks --region "${CLUSTER_REGION}" update-kubeconfig --name "${CLUSTER_NAME}"; then
+    exit 1
+fi
+#------------------------------------------------------------------------
+# install metric server for HPA
+# https://docs.aws.amazon.com/ja_jp/eks/latest/userguide/horizontal-pod-autoscaler.html
+#------------------------------------------------------------------------
+echo "#------------------------------------------------------------------------"
+echo "# install metrics server for HPA"
+echo "#------------------------------------------------------------------------"
+CHECK_METRIC_SERVER=$(kubectl get deployment -n kube-system | grep metrics | wc -l)
+# echo $CHECK_METRIC_SERVER
+if [ "${CHECK_METRIC_SERVER}" -eq 0 ]; then
+    echo "apply metrics server for HPA..."
+    kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.3.6/components.yaml
+    echo -e "\n"
+fi
+
+# Check Server
+echo "check deployment/metrics-server..."
+for ((i=0; i < 20; i++));
+do
+    CHECK_METRIC_SERVER=$(kubectl get deployment -n kube-system | grep metrics | wc -l)
+    if [ "${CHECK_METRIC_SERVER}" -ge 1 ]; then
+        echo "OK"
+        break
+    fi
+    sleep 3
+done
+
+#------------------------------------------------------------------------
+# install Cluster Autoscaler
+# https://docs.aws.amazon.com/ja_jp/eks/latest/userguide/cluster-autoscaler.html#ca-ng-considerations
+#------------------------------------------------------------------------
+echo "#------------------------------------------------------------------------"
+echo "# install Cluster Autoscaler"
+echo "#------------------------------------------------------------------------"
+echo -e "\n"
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+kubectl -n kube-system annotate deployment.apps/cluster-autoscaler cluster-autoscaler.kubernetes.io/safe-to-evict="false"
+echo -e "\n"
+
+# cluster-autoscaler コンテナコマンドを編集して、<YOUR CLUSTER NAME> をクラスターの名前に置き換え、以下のオプションを追加します。
+# --balance-similar-node-groups
+# --skip-nodes-with-system-pods=false
+echo "kubectl -n kube-system edit deployment.apps/cluster-autoscaler"
+echo "cluster-autoscaler コンテナコマンドを編集して、<YOUR CLUSTER NAME> をクラスターの名前に置き換え、以下のオプションを追加します。"
+echo "------------------------------------------------------------------------"
+echo "- --balance-similar-node-groups"
+echo "- --skip-nodes-with-system-pods=false"
+echo "------------------------------------------------------------------------"
+read -rp "you need to action it. ok? (y/N): " yn
+case "$yn" in [yY]*) ;; *) echo "abort." ; exit ;; esac
+kubectl -n kube-system edit deployment.apps/cluster-autoscaler
+
+# need to check release version.
+# https://github.com/kubernetes/autoscaler/releases
+kubectl -n kube-system set image deployment.apps/cluster-autoscaler cluster-autoscaler=us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler:v"${CLUSTER_AUTOSCALER_VERSION}"
+
+# check cluster-autoscaler logs.
+# kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler
+echo -e "\n"
+
+#------------------------------------------------------------------------
+# ALB Ingress Controller on Amazon EKS
+# https://docs.aws.amazon.com/ja_jp/eks/latest/userguide/alb-ingress.html
+#------------------------------------------------------------------------
+if [ "${ALB_USE}" -eq 1 ]; then
+    echo "#------------------------------------------------------------------------"
+    echo "# ALB Ingress Controller on Amazon EKS"
+    echo "#------------------------------------------------------------------------"
+    # eksctl utils associate-iam-oidc-provider --region "${CLUSTER_REGION}" --cluster "${CLUSTER_NAME}" --approve
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v"${ALB_VERSION}"/docs/examples/rbac-role.yaml
+    kubectl annotate serviceaccount -n kube-system -overwrite alb-ingress-controller eks.amazonaws.com/role-arn="${ALB_ROLE_ARN}"
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v"${ALB_VERSION}"/docs/examples/alb-ingress-controller.yaml
+
+    echo "Add a line for the cluster name after the --ingress-class=alb line. If you're running the ALB Ingress Controller on Fargate, then you must also add the lines for the VPC ID, and AWS Region name of your cluster. Once you've added the appropriate lines, save and close the file."
+    echo "kubectl edit deployment.apps/alb-ingress-controller -n kube-system"
+    echo "------------------------------------------------------------------------"
+    printf "    spec:\n"
+    printf "      containers:\n"
+    printf "      - args:\n"
+    printf "        - --ingress-class=alb\n"
+    printf "        - --cluster-name=%b%s%b\n" "${RED}" "${CLUSTER_NAME}" "${NC}"
+    printf "        - --aws-vpc-id=%b<your vpc id>%b\n" "${RED}" "${NC}"
+    printf "        - --aws-region=%b%s%b\n" "${RED}" "${CLUSTER_REGION}" "${NC}"
+    echo "------------------------------------------------------------------------"
+    read -rp "you need to action it. ok? (y/N): " yn
+    case "$yn" in [yY]*) ;; *) echo "abort." ; exit ;; esac
+    kubectl edit deployment.apps/alb-ingress-controller -n kube-system
+    echo -e "\n"
+fi
+
+#------------------------------------------------------------------------
+# Amazon EKS cluster endpoint access control
+# https://docs.aws.amazon.com/ja_jp/eks/latest/userguide/cluster-endpoint.html
+#------------------------------------------------------------------------
+if [ -n "${PUBLIC_ACCESS_CIDRS}" ]; then
+    aws eks update-cluster-config \
+        --region region-code \
+        --name dev \
+        --resources-vpc-config endpointPublicAccess=true,publicAccessCidrs="${PUBLIC_ACCESS_CIDRS}",endpointPrivateAccess=true
+fi
+
+# check cluster-autoscaler logs.
+echo "#------------------------------------------------------------------------"
+echo "# check cluster-autoscaler logs"
+echo "#------------------------------------------------------------------------"
+echo "kubectl -n kube-system logs -f deployment.apps/cluster-autoscaler"
+
+# check ALB Ingress Controller
+if [ "${ALB_USE}" -eq 1 ]; then
+    echo "#------------------------------------------------------------------------"
+    echo "# check ALB Ingress Controller"
+    echo "#------------------------------------------------------------------------"
+    echo "kubectl get pods -n kube-system | grep alb-ingress-controller"
+fi
