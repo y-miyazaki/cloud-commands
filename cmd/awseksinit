@@ -45,25 +45,29 @@ Usage:
     $(basename "${0}") -r ap-northeast-1 -n test-cluster -l -a arn:aws:iam::xxxxxxxxxxx:role/yyyyyyyyyy
 
 Options:
-    -a {alb role arn}             This option is also required when using ALB (-l option). Specify the rolearn of alb.
+    -a {alb role arn}              This option is also required when using ALB (-l option). Specify the rolearn of alb.
+    -d {domain}                    for external-dns can set route53 record.
     -l                             If set, add application load balancer.
     -n {cluter name}               Specify the name of the Cluster.
     -p {cidr blocks}               If set, API server filter cidr blocks.
     -r {cluter region}             Specify the region of the Cluster.
     -v {cluter autoscaler version} If set, the Cluster Autoscaler will be set to the specified version.
+    -z {hosted zone id}            for external-dns need to hosted zone id.
 EOF
     exit 1
 }
 
-while getopts a:hln:p:r:v: opt
+while getopts a:d:hln:p:r:v:z: opt
 do
     case $opt in
         a ) ALB_ROLE_ARN=$OPTARG ;;
+        d ) EXTERNAL_DNS_DOMAIN=$OPTARG ;;
         l ) ALB_USE=1 ;;
         n ) CLUSTER_NAME=$OPTARG ;;
         p ) PUBLIC_ACCESS_CIDRS=$OPTARG ;;
         r ) CLUSTER_REGION=$OPTARG ;;
         v ) CLUSTER_AUTOSCALER_VERSION=$OPTARG ;;
+        z ) EXTERNAL_DNS_HOSTED_ZONE_ID=$OPTARG ;;
         h ) usage ;;
         \? ) usage ;;
     esac
@@ -180,6 +184,22 @@ if [ "${ALB_USE}" -eq 1 ]; then
     case "$yn" in [yY]*) ;; *) echo "abort." ; exit ;; esac
     kubectl edit deployment.apps/alb-ingress-controller -n kube-system
     echo -e "\n"
+
+    if [ -n "${EXTERNAL_DNS_DOMAIN}" ] && [ -n "${EXTERNAL_DNS_HOSTED_ZONE_ID}" ]; then
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        helm repo update
+        helm install external-dns bitnami/external-dns \
+            --set provider=aws \
+            --set domainFilters[0]="${EXTERNAL_DNS_DOMAIN}"\
+            --set policy=sync \
+            --set registry=txt \
+            --set txtOwnerId="${EXTERNAL_DNS_HOSTED_ZONE_ID}" \
+            --set interval=3m \
+            --set rbac.create=true \
+            --set rbac.serviceAccountName=external-dns \
+            --set namespace=kube-system
+            --set rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn=<ROLE_ARN>
+    fi
 fi
 
 #------------------------------------------------------------------------

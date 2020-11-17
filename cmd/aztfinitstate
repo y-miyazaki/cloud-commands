@@ -25,6 +25,8 @@ Usage:
     $(basename "${0}") -g {resource group name} -l {location} -n {storage account name} -c {container name} -r [<options>]
     $(basename "${0}") -g your-resource-group -l japaneast -n ts -c tfstate -r
 
+    ex: $(basename "${0}") -g tfstate -l japaneast -n ts -c tfstate -r
+
 Options:
     -c {container name}       Name of Blob Container
     -g {resource group name}  Name of Resource Group
