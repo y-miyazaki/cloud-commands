@@ -6,7 +6,8 @@ set -e
 
 echo "#------------------------------------------------------------------------"
 echo "# aws eks cluster creadencials(set ./kube/config)"
-echo "# https://aws.amazon.com/jp/premiumsupport/knowledge-center/eks-cluster-connection/"
+echo "# - Create a kubeconfig for Amazon EKS"
+echo "#   https://aws.amazon.com/jp/premiumsupport/knowledge-center/eks-cluster-connection/"
 echo "#------------------------------------------------------------------------"
 echo "aws eks --region {your cluster region} update-kubeconfig --name {cluster name}"
 echo -e "\n"
