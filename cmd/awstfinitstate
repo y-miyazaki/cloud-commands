@@ -122,3 +122,8 @@ cat "${SCRIPT_DIR}"/files/aws/terraform_state_policy.json | sed -i -e "s/##BUCKE
 # shellcheck disable=SC2086
 aws s3api put-bucket-policy ${PROFILE} --bucket "${BUCKET}" --policy file://"${SCRIPT_DIR}"/files/aws/terraform_state_policy.json
 rm -f "${SCRIPT_DIR}"/files/aws/terraform_state_policy.json
+
+echo "--------------------------------------------------------------"
+echo "bucket_name: ${BUCKET}"
+echo "region: ${REGION}"
+echo "--------------------------------------------------------------"

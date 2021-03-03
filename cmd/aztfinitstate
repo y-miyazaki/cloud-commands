@@ -79,7 +79,7 @@ fi
 az group create --name "${RESOURCE_GROUP_NAME}" --location "${LOCATION}"
 
 # Create storage account
-az storage account create --resource-group "${RESOURCE_GROUP_NAME}" --name "${STORAGE_ACCOUNT_NAME}" --sku Standard_LRS --encryption-services blob --kind Storage
+az storage account create --resource-group "${RESOURCE_GROUP_NAME}" --name "${STORAGE_ACCOUNT_NAME}" --sku Standard_LRS --encryption-services blob --kind Storage --allow-blob-public-access false
 
 # create delete policy
 az storage blob service-properties delete-policy update --days-retained "${DAYS}" --account-name "${STORAGE_ACCOUNT_NAME}" --enable true

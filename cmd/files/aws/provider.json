@@ -1,6 +1,7 @@
 {
   "terraform": {
-    "required_version": ">=0.12",
+    "required_version": ">=0.13",
+    "after_version_013": true,
     "backend_s3": {
       "key": "terraform.tfstate"
     }

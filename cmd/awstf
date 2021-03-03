@@ -69,6 +69,7 @@ else
     exit 1
 fi
 REQUIRED_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .terraform.required_version)
+AFTER_VERSION_013=$(cat "${PROVIDER_FILE}" | jq -r .terraform.after_version_013)
 BACKEND_S3_KEY=$(cat "${PROVIDER_FILE}" | jq -r .terraform.backend_s3.key)
 AWS_VERSION=$(cat "${PROVIDER_FILE}" | jq -r .aws.version)
 
@@ -100,7 +101,11 @@ fi
 # export TF_LOG_PATH='./terraform.log'
 rm -f terraform.log crash.log main_init.tf
 if [ "${IS_GENERATE_PROVIDER}" -eq "1" ]; then
-    cp -p "${SCRIPT_DIR}"/files/aws/main.template.tf ./main_init.tf
+    if "${AFTER_VERSION_013}"; then
+        cp -p "${SCRIPT_DIR}"/files/aws/main013.template.tf ./main_init.tf
+    else
+        cp -p "${SCRIPT_DIR}"/files/aws/main.template.tf ./main_init.tf
+    fi
     cat ./main_init.tf | sed -i -e "s/##REQUIRED_VERSION##/${REQUIRED_VERSION}/g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s/##S3_BUCKET##/${BUCKET}/g" ./main_init.tf
     cat ./main_init.tf | sed -i -e "s/##S3_KEY##/${BACKEND_S3_KEY}/g" ./main_init.tf
