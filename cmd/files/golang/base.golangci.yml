@@ -74,11 +74,13 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - interfacer
+    # Deprecated...
+    #    - interfacer # Linter that suggests narrower interface types
     - lll
     - misspell
     - nakedret
-    - scopelint
+    # Deprecated...
+    #    - scopelint # Scopelint checks for unpinned variables in go programs
     - staticcheck
     - structcheck
     - stylecheck
