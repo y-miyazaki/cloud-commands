@@ -85,19 +85,19 @@ if [ -z "${AWS_ID}" ]; then
     usage "can't get AWS_ID"
 fi
 
-# # バケットの作成
-# # リージョンを指定しないとエラーになるので明示的に指定している
-# # https://dev.classmethod.jp/cloud/aws/jaws-ug-cli-1/
+# create bucket
 # shellcheck disable=SC2086
 aws s3api create-bucket ${PROFILE} --bucket "${BUCKET}" --create-bucket-configuration LocationConstraint="${REGION}" && :
 
-# # バケットのバージョニング設定
-# # 何かやらかしたときに、復元できるようにしておく
+# public access block
+# shellcheck disable=SC2086
+aws s3api put-public-access-block ${PROFILE} --bucket "${BUCKET}" --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+
+# versioning
 # shellcheck disable=SC2086
 aws s3api put-bucket-versioning ${PROFILE} --bucket "${BUCKET}" --versioning-configuration Status=Enabled
 
-# # バケットのデフォルト暗号化設定
-# # http://tech.withsin.net/2017/12/05/s3-bucket-encryption/
+# default encrypt
 # shellcheck disable=SC2086
 aws s3api put-bucket-encryption ${PROFILE} --bucket "${BUCKET}" --server-side-encryption-configuration '{
   "Rules": [
