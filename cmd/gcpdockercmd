@@ -5,10 +5,15 @@
 #--------------------------------------------------------------
 set -e
 
+# Set gcloud authentication
 if [ -n "${GOOGLE_CLOUD_KEYFILE_JSON}" ] && [ -n "${PROJECT_ID}" ]; then
-    # gcloud authentication
     /root/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file "${GOOGLE_CLOUD_KEYFILE_JSON}"
     /root/google-cloud-sdk/bin/gcloud config set core/project "${PROJECT_ID}"
+fi
+
+# Create terraform plugin dirctory.
+if [ -n "${TF_PLUGIN_CACHE_DIR}" ]; then
+    mkdir -p "${TF_PLUGIN_CACHE_DIR}"
 fi
 
 # keep container.

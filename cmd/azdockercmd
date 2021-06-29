@@ -4,9 +4,14 @@
 # This script uses this azure environment.
 #--------------------------------------------------------------
 set -e
-# az login
+# Set az login
 if [ -n "${ARM_CLIENT_ID}" ] && [ -n "${ARM_CLIENT_SECRET}" ] && [ -n "${ARM_TENANT_ID}" ]; then
     az login --service-principal --username "${ARM_CLIENT_ID}" --password "${ARM_CLIENT_SECRET}" --tenant "${ARM_TENANT_ID}"
+fi
+
+# Create terraform plugin dirctory.
+if [ -n "${TF_PLUGIN_CACHE_DIR}" ]; then
+    mkdir -p "${TF_PLUGIN_CACHE_DIR}"
 fi
 
 # keep container.
