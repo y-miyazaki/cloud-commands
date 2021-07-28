@@ -1,0 +1,13 @@
+#!/bin/bash
+#------------------------------------------------------------------------
+# gvm install and use CMD
+# This shell will install and specify the specified Go version.
+#------------------------------------------------------------------------
+set -e
+
+GO_VERSION=$1
+
+source "${HOME}"/.gvm/scripts/gvm
+gvm install "${GO_VERSION}" -B
+gvm use "${GO_VERSION}" --default
+go version
