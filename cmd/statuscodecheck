@@ -1,0 +1,85 @@
+#!/bin/bash
+set -e
+#--------------------------------------------------------------
+# check status code
+#--------------------------------------------------------------
+#--------------------------------------------------------------
+# variables
+#--------------------------------------------------------------
+EXIT_FLG=0
+
+# usage function
+function usage () {
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    if [ -n "${1}" ]; then
+        printf "%b%s%b\n" "${RED}" "${1}" "${NC}"
+    fi
+    cat <<EOF
+
+This script checks the URL and status code in the specified file, and returns an error if they do not match.
+It is used to check if a particular URL can be accessed unexpectedly.
+
+Usage:
+    $(basename "${0}") {commands} {options}
+    $(basename "${0}") -f url.txt
+    $(basename "${0}") -u https://www.example.com/ -s 200
+
+Options:
+    -f {url list file}        Specify the file containing the URL and status code.
+    -s {status code}          -u Specify the expected status code to be returned by the URL specified in the option.
+    -u {url}                  Specify the URL you want to check for StatusCode.
+    -h                        Usage $(basename "${0}")
+Example file:
+    Note: The separator is a space.
+---
+https://www.google.com/ 200
+https://www.yahoo.com/ 200
+---
+EOF
+    exit 1
+}
+while getopts f:hu:s: opt
+do
+    case $opt in
+        f ) FILE=$OPTARG ;;
+        h ) usage ;;
+        u ) URL=$OPTARG ;;
+        s ) STATUS_CODE=$OPTARG ;;
+        \? ) usage ;;
+    esac
+done
+
+# check aws command
+if [ -z "$(command -v curl)" ]; then
+    usage "This command need to install \"curl\"."
+fi
+
+if [ -n "${FILE}" ]; then
+    if [ ! -e "$FILE" ]; then
+        usage "${FILE} does not exists."
+    fi
+    while read -r line
+    do
+        # shellcheck disable=SC2206
+        ARR=(${line// / })
+        RETURN_STATUS_CODE=$(curl "${ARR[0]}" -o /dev/null -w '%{http_code}\n' -s)
+        if [ "$RETURN_STATUS_CODE" != "${ARR[1]}" ]; then
+            echo "${ARR[0]} Expected:${ARR[1]} Actual:${RETURN_STATUS_CODE}"
+            EXIT_FLG=1
+        fi
+    done < "${FILE}"
+else
+    if [ -z "$URL" ]; then
+        usage "-u option is not specified."
+    fi
+    if [ -z "$STATUS_CODE" ]; then
+        usage "-s option is not specified."
+    fi
+    RETURN_STATUS_CODE=$(curl "${URL}" -o /dev/null -w '%{http_code}\n' -s)
+    if [ "$RETURN_STATUS_CODE" != "$STATUS_CODE" ]; then
+        echo "${URL} Expected:${STATUS_CODE} Actual:${RETURN_STATUS_CODE}"
+        EXIT_FLG=1
+    fi
+fi
+exit ${EXIT_FLG}
