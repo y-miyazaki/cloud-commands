@@ -104,6 +104,21 @@ echo "ex) kubectl get events"
 echo "ex) kubectl get events -A"
 echo -e "\n"
 
+echo "#------------------------------------------------------------------------"
+echo "# get all"
+echo "#------------------------------------------------------------------------"
+echo -e "\n"
+echo "kubectl get all -n {namespace} -o wide"
+echo "ex kubectl get all -n kube-system -o wide"
+
+echo "#------------------------------------------------------------------------"
+echo "# port forward"
+echo "#------------------------------------------------------------------------"
+echo -e "\n"
+echo "kubectl port-forward {service name} -n {namespace} {fromport}:{toport}"
+echo "ex kubectl port-forward svc/argocd-server -n argocd 8080:443"
+
+kubectl port-forward svc/argocd-server -n argocd 8080:443
 # kustomize
 echo "#------------------------------------------------------------------------"
 echo "# Kustomize"
