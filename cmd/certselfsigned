@@ -11,7 +11,11 @@ DIR=certs
 
 # usage function
 function usage () {
-    echo "${1}"
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    if [ -n "${1}" ]; then
+        printf "%b%s%b\n" "${RED}" "${1}" "${NC}"
+    fi
     cat <<EOF
 
 This command creates a self certificate.
