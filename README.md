@@ -11,7 +11,4 @@ The main commands are as follows.
 - For Terraform
 - For cloud environment (AWS/GCP/Azure)
 - Self certificate creation
-- kubenetes help
-- istio help
-- helm help  
 - etc...
