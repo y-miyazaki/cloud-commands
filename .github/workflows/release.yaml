@@ -15,7 +15,7 @@ jobs:
           echo $SSH_PRIVATE_KEY >> ./id_rsa
           chmod +x scripts/*
           docker pull ymiyazakixyz/golang-build:latest
-          docker run --rm -v $PWD:/go/src/github.com/y-miyazaki/cloud-commands -v $PWD/id_rsa:/root/.ssh/id_rsa -w /go/src/github.com/y-miyazaki/cloud-commands --name golang-build ymiyazakixyz/golang-build:latest ./scripts/gobuild.sh
+          docker run --rm -v $PWD:/go/src/github.com/y-miyazaki/cloud-commands -v $PWD/id_rsa:/root/.ssh/id_rsa -w /go/src/github.com/y-miyazaki/cloud-commands --name golang-build ymiyazakixyz/golang-build:latest ./scripts/go/gobuild.sh
           rm ./id_rsa
       - name: "cmd: archive"
         run: |

@@ -22,7 +22,7 @@ jobs:
           echo $SSH_PRIVATE_KEY >> ./id_rsa
           chmod +x scripts/*
           docker pull ymiyazakixyz/golang-test:latest
-          docker run --rm -v $PWD:/go/src/github.com/y-miyazaki/cloud-commands -v $PWD/id_rsa:/root/.ssh/id_rsa -w /go/src/github.com/y-miyazaki/cloud-commands --name golang-test ymiyazakixyz/golang-test:latest ./scripts/gotest.sh
+          docker run --rm -v $PWD:/go/src/github.com/y-miyazaki/cloud-commands -v $PWD/id_rsa:/root/.ssh/id_rsa -w /go/src/github.com/y-miyazaki/cloud-commands --name golang-test ymiyazakixyz/golang-test:latest ./scripts/go/gotest.sh
           rm ./id_rsa
       - name: "go: upload coverage"
         uses: actions/upload-artifact@master
