@@ -114,7 +114,7 @@ if [ $IS_TEST -eq 1 ]; then
     echo "# go test..."
     echo "#------------------------------------------------------------------------"
     mkdir -p "${COVER_DIR}"
-    go test "$(go list ./... | grep -v /vendor/)" -coverprofile="${COVER_DIR}"/coverage.out
+    go test $(go list ./... | grep -v /vendor/) -coverprofile="${COVER_DIR}"/coverage.out
     go tool cover -html="${COVER_DIR}"/coverage.out -o "${COVER_DIR}"/coverage.html
     if [ -n "${IS_COVERTUNA}" ]; then
         gocover-cobertura < "${COVER_DIR}"/coverage.out > "${COVER_DIR}"/coverage_cobertura.xml
